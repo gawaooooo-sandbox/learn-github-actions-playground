@@ -83,4 +83,4 @@ jobs:
       - name: Deploy to testing environment
         run: |
           echo "Deploying to testing environment"
-          ls -la dist
+          ls -la dist/
