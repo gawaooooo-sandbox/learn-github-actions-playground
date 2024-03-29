@@ -1,4 +1,4 @@
-name: Deploy to Validation Environment
+name: Deploy to testing environment
 
 on:
   pull_request:
@@ -67,4 +67,4 @@ jobs:
       - name: Deploy to testing environment
         run: |
           echo "Deploying to testing environment"
-          ls -la
+          ls -la dist

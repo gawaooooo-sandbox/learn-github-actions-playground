@@ -21,6 +21,7 @@ on:
         description: "Optional input to set the ref to checkout. The input syntax corresponds to the actions/checkout's one"
         required: false
         type: string
+        # TODO: github.ref?
         default: ${{ github.head_ref }}
       install-options:
         description: 'Optional input to set the options to pass to the npm install command'
