@@ -1,0 +1,24 @@
+name: Pre Deploy Check
+
+on:
+  push:
+    branches:
+      - main
+    paths-ignore:
+      - '**.md'
+      - 'public/**'
+      - '.editorconfig'
+      - '.gitignore'
+  workflow_dispatch:
+
+jobs:
+  lint:
+    uses: ./.github/workflows/lint.yml
+    with:
+      checkout-ref: ${{ github.ref }}
+      enable-format-check: true
+
+  test:
+    uses: ./.github/workflows/test.yml
+    with:
+      checkout-ref: ${{ github.ref }}
