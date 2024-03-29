@@ -1,6 +1,7 @@
 name: Lint code
 
 on:
+  workflow_dispatch:
   push:
     paths-ignore:
       - '*.md'
@@ -11,6 +12,7 @@ on:
 jobs:
   lint:
     runs-on: ubuntu-22.04
+    timeout-minutes: 5
     permissions:
       contents: read
 
