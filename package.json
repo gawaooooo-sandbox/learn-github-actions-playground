@@ -12,6 +12,7 @@
     "lint:fix": "eslint --fix --ignore-path .gitignore .",
     "format:check": "prettier --check .",
     "format:fix": "prettier --write .",
+    "test": "echo \"Error: no test specified\"",
     "prepare": "husky"
   },
   "lint-staged": {
