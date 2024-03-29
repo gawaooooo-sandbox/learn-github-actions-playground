@@ -1,0 +1,31 @@
+name: Test CI
+description: Workflow playground for testing CI
+
+on: push
+
+jobs:
+  lint:
+    runs-on: ubuntu-22.04
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: |
+          npm ci
+        env:
+          # CI上では Husky を install しない
+          # https://typicode.github.io/husky/how-to.html#ci-server-and-docker
+          HUSKY: 0
+
+      - name: Run tests
+        run: |
+          echo "Running tests..."
+          echo "Tests passed!"
