@@ -19,7 +19,7 @@ jobs:
     steps:
       - run: cat $GITHUB_EVENT_PATH
 
-      - name: Check out code
+      - name: Checkout code
         uses: actions/checkout@v4
 
       - name: Set up Node.js
