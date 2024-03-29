@@ -9,6 +9,14 @@ on:
       - 'public/**'
       - '.editorconfig'
       - '.gitignore'
+  push:
+    branches:
+      - main
+    paths-ignore:
+      - '**.md'
+      - 'public/**'
+      - '.editorconfig'
+      - '.gitignore'
 
 jobs:
   lint:
