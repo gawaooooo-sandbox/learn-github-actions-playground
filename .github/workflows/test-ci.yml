@@ -1,5 +1,4 @@
 name: Test CI
-description: Workflow playground for testing CI
 
 on: push
 
