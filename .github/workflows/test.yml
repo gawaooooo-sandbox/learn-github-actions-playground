@@ -17,6 +17,8 @@ jobs:
       contents: read
 
     steps:
+      - run: cat $GITHUB_EVENT_PATH
+
       - name: Check out code
         uses: actions/checkout@v4
 
