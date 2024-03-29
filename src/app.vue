@@ -4,6 +4,7 @@ console.log(process.env);
 
 <template>
     <div>
+        <p>Hello!</p>
         <NuxtWelcome />
     </div>
 </template>
