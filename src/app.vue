@@ -1,10 +1,11 @@
 <script setup lang="ts">
+console.log('-------- print process.env --------');
 console.log(process.env);
+console.log('▲▲▲▲▲▲▲▲ print process.env ▲▲▲▲▲▲▲▲');
 </script>
 
 <template>
     <div>
-        <p>Hello!</p>
         <NuxtWelcome />
     </div>
 </template>
