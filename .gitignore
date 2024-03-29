@@ -72,13 +72,6 @@ web_modules/
 # Yarn Integrity file
 .yarn-integrity
 
-# dotenv environment variable files
-.env
-.env.development.local
-.env.test.local
-.env.production.local
-.env.local
-
 # parcel-bundler cache (https://parceljs.org/)
 .cache
 .parcel-cache
@@ -87,9 +80,23 @@ web_modules/
 .next
 out
 
-# Nuxt.js build / generate output
+# Nuxt dev/build outputs
+.output
+.data
 .nuxt
+.nitro
+.cache
 dist
+
+# Misc
+.DS_Store
+.fleet
+.idea
+
+# Local env files
+.env
+.env.*
+!.env.example
 
 # Gatsby files
 .cache/
