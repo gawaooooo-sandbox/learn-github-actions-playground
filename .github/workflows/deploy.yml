@@ -24,12 +24,12 @@ jobs:
   #   steps:
   #     - name: Checkout branch
   #       id: checkout
-  #       # environment == production の場合は master ブランチをチェックアウト
+  #       # environment == production の場合は main ブランチをチェックアウト
   #       # environment == alpha の場合は develop ブランチをチェックアウト
   #       # それ以外の場合はエラー
   #       run: |
   #         if [[ inputs.environment == 'production' ]]; then
-  #           echo "branch=master" >> $GITHUB_OUTPUT
+  #           echo "branch=main" >> $GITHUB_OUTPUT
   #         elif [[ inputs.environment == 'alpha' ]]; then
   #           echo "branch=develop" >> $GITHUB_OUTPUT
   #         else
@@ -50,7 +50,7 @@ jobs:
         id: checkout
         run: |
           if [[ ${{ inputs.environment }} == 'production' ]]; then
-            echo "branch=master" >> $GITHUB_OUTPUT
+            echo "branch=main" >> $GITHUB_OUTPUT
           elif [[ ${{ inputs.environment }} == 'alpha' ]]; then
             echo "branch=develop" >> $GITHUB_OUTPUT
           else
