@@ -8,6 +8,13 @@ console.log('---- testB');
 const router = useRouter();
 
 const nav = [{ label: 'Home', to: '/' }];
+
+// runtime config
+const runtimeConfig = useRuntimeConfig();
+console.log(runtimeConfig);
+console.log(
+    `app.vue: runtimeConfig.public.baseUrl >  ${runtimeConfig.public.baseUrl}`,
+);
 </script>
 
 <template>
