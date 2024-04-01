@@ -26,8 +26,6 @@ jobs:
       cancel-in-progress: true
     permissions:
       contents: write
-    environment:
-      name: alpha
 
     steps:
       - name: Merge branch
