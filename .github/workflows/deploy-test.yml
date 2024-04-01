@@ -9,7 +9,6 @@ on:
       - 'public/**'
       - '.editorconfig'
       - '.gitignore'
-  workflow_dispatch:
 
 jobs:
   lint:
@@ -33,9 +32,13 @@ jobs:
         uses: everlytic/branch-merge@c4a244dc23143f824ae6c022a10732566cb8e973 # v1.1.5
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          # source_ref: ${{github.ref}}
-          # プルリクエスト元のブランチをdevelopにマージする
-          source_ref: ${{github.head_ref}}
+          # @see https://docs.github.com/ja/enterprise-cloud@latest/actions/learn-github-actions/contexts#github-context
+          # pull request の マージブランチ(マージ対象のブランチとマージした結果の状態を持つブランチ)をdevelopにマージする
+          source_ref: ${{github.ref}}
+
+          # # プルリクエスト元のブランチをdevelopにマージする
+          # # @see https://docs.github.com/ja/enterprise-cloud@latest/actions/learn-github-actions/contexts#github-context
+          # source_ref: ${{github.head_ref}}
           target_branch: develop
 
   deploy:
