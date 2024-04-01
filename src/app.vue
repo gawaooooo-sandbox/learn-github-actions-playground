@@ -3,6 +3,7 @@ console.log('-------- print process.env --------');
 console.log(process.env);
 console.log('▲▲▲▲▲▲▲▲ print process.env ▲▲▲▲▲▲▲▲');
 
+console.log('---- testB');
 // router test
 const router = useRouter();
 
