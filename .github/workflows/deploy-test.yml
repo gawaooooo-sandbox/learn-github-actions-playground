@@ -12,7 +12,13 @@ on:
 
 jobs:
   lint:
-    uses: ./.github/workflows/lint.yml
+    # uses: ./.github/workflows/lint.yml
+    uses: gawaooooo-sandbox/learn-github-actions-reusable-workflows/.github/workflows/lint.yml@main
+    with:
+      install-options: '--ignore-scripts'
+      enable-format-check: true
+      enable-typecheck: true
+      typecheck-script: 'npm run type:check'
 
   test:
     uses: ./.github/workflows/test.yml
