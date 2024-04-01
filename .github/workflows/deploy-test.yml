@@ -13,7 +13,7 @@ on:
 jobs:
   lint:
     # uses: ./.github/workflows/lint.yml
-    uses: gawaooooo-sandbox/learn-github-actions-reusable-workflows/.github/workflows/reusable-lint.yml@main
+    uses: gawaooooo-sandbox/learn-github-actions-reusable-workflows/.github/workflows/reusable-lint.yml@feature/test-lint
     with:
       install-options: '--ignore-scripts'
       enable-format-check: true
