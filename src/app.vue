@@ -6,6 +6,7 @@ console.log('▲▲▲▲▲▲▲▲ print process.env ▲▲▲▲▲▲▲▲
 
 <template>
     <div>
+        <p>testB</p>
         <NuxtWelcome />
     </div>
 </template>
