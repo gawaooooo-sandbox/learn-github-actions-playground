@@ -81,7 +81,9 @@ jobs:
 
       - name: Run Prettier
         if: ${{ inputs.enable-format-check }}
-        run: ${{ inputs.format-check-script }}
+        run: '${FORMAT_CHECK_SCRIPT}'
+        env:
+          FORMAT_CHECK_SCRIPT: ${{ inputs.format-check-script }}
 
       - name: Run linter
         if: ${{ inputs.enable-lint }}
