@@ -26,8 +26,6 @@ jobs:
       cancel-in-progress: true
     permissions:
       contents: write
-    environment:
-      name: alpha
 
     steps:
       - name: Merge branch
@@ -50,13 +48,12 @@ jobs:
     concurrency:
       group: ${{ github.workflow }}-${{ github.ref }}
       cancel-in-progress: true
-    environment: alpha
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-        # with:
-        #   ref: develop
+        with:
+          ref: develop
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -78,4 +75,3 @@ jobs:
         run: |
           echo "Deploying to testing environment"
           ls -la dist/
-          echo "${{vars.TEST_HOGE}}"
