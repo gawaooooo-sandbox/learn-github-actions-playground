@@ -2,6 +2,8 @@
 console.log('-------- print process.env --------');
 console.log(process.env);
 console.log('▲▲▲▲▲▲▲▲ print process.env ▲▲▲▲▲▲▲▲');
+
+console.log('---- testB');
 </script>
 
 <template>
