@@ -4,18 +4,18 @@ run-name: ${{github.workflow}} / ${{inputs.environment}}
 on:
   workflow_dispatch:
     inputs:
+      environment:
+        description: 'Environment to deploy to (alpha|prod)'
+        required: true
+        default: 'prod'
       # environment:
       #   description: 'Environment to deploy to'
       #   required: true
-      #   default: 'production'
-      environment:
-        description: 'Environment to deploy to'
-        required: true
-        type: choice
-        default: 'production'
-        options:
-          - 'production'
-          - 'alpha'
+      #   type: choice
+      #   default: 'prod'
+      #   options:
+      #     - 'prod'
+      #     - 'alpha'
 
 jobs:
   # setup:
@@ -29,7 +29,7 @@ jobs:
   #       # environment == alpha の場合は develop ブランチをチェックアウト
   #       # それ以外の場合はエラー
   #       run: |
-  #         if [[ inputs.environment == 'production' ]]; then
+  #         if [[ inputs.environment == 'prod' ]]; then
   #           echo "branch=main" >> $GITHUB_OUTPUT
   #         elif [[ inputs.environment == 'alpha' ]]; then
   #           echo "branch=develop" >> $GITHUB_OUTPUT
@@ -45,25 +45,26 @@ jobs:
     concurrency:
       group: ${{ github.workflow }}-${{ inputs.environment }}
       cancel-in-progress: true
+    environment: ${{ inputs.environment }}
 
     steps:
-      - name: Set up checkout branch
-        id: checkout
-        run: |
-          if [[ ${{ inputs.environment }} == 'production' ]]; then
-            echo "branch=main" >> $GITHUB_OUTPUT
-          elif [[ ${{ inputs.environment }} == 'alpha' ]]; then
-            echo "branch=develop" >> $GITHUB_OUTPUT
-          else
-            echo "Invalid environment: ${{ inputs.environment }}"
-            exit 1
-          fi
+      # - name: Set up checkout branch
+      #   id: checkout
+      #   run: |
+      #     if [[ ${{ inputs.environment }} == 'prod' ]]; then
+      #       echo "branch=main" >> $GITHUB_OUTPUT
+      #     elif [[ ${{ inputs.environment }} == 'alpha' ]]; then
+      #       echo "branch=develop" >> $GITHUB_OUTPUT
+      #     else
+      #       echo "Invalid environment: ${{ inputs.environment }}"
+      #       exit 1
+      #     fi
 
-      - run: echo ${{ steps.checkout.outputs.branch }}
+      # - run: echo ${{ steps.checkout.outputs.branch }}
       - name: Checkout code
         uses: actions/checkout@v4
-        with:
-          ref: ${{ steps.checkout.outputs.branch }}
+        # with:
+        #   ref: ${{ steps.checkout.outputs.branch }}
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -85,3 +86,4 @@ jobs:
         run: |
           echo "Deploying to testing environment"
           ls -la dist/
+          echo "${{vars.TEST_HOGE}}"
