@@ -39,6 +39,17 @@ jobs:
   #           exit 1
   #         fi
 
+  pre-processing:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    steps:
+      - name: create inputs summary
+        uses: gawaooooo-sandbox/learn-github-actions-reusable-workflows/.github/actions/create-inputs-summary@feature/test-lint
+        with:
+          workflow-inputs: ${{ toJSON(inputs) }}
+
   deploy:
     # needs: setup
     runs-on: ubuntu-22.04
