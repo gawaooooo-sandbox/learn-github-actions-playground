@@ -1,5 +1,5 @@
 name: Deploy to testing environment
-run-name: ${{ github.workflow }}
+run-name: ${{ github.workflow }} on ${{ github.ref_type }} ${{ github.ref_name }} [${{ github.sha }}]
 
 on:
   pull_request:
