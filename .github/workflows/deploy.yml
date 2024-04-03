@@ -1,5 +1,6 @@
 name: Deploy to Selected Environment
-run-name: ${{github.workflow}} / ${{inputs.environment}}
+# run-name: ${{github.workflow}} / ${{inputs.environment}}
+run-name: Build as ${{ inputs.environment }} on ${{ github.ref_type }} ${{ github.ref_name }} [${{ github.sha }}]
 
 on:
   workflow_dispatch:

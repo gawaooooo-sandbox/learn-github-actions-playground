@@ -14,10 +14,11 @@ on:
 jobs:
   lint:
     # uses: ./.github/workflows/lint.yml
-    uses: gawaooooo-sandbox/learn-github-actions-reusable-workflows/.github/workflows/reusable-lint.yml@feature/test-lint
+    uses: gawaooooo-sandbox/learn-github-actions-reusable-workflows/.github/workflows/reusable-lint.yml@main
     with:
       checkout-ref: ${{ github.ref }}
       enable-format-check: true
+      lint-script: 'npm run lint && npm run format:check'
 
   test:
     uses: ./.github/workflows/test.yml
