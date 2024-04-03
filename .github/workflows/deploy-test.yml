@@ -1,5 +1,5 @@
 name: Deploy to testing environment
-run-name: ${{ github.workflow }}
+run-name: ${{ github.workflow }} on ${{ github.ref_type }} ${{ github.ref_name }} [${{ github.sha }}]
 
 on:
   pull_request:
@@ -14,7 +14,7 @@ on:
 jobs:
   lint:
     # uses: ./.github/workflows/lint.yml
-    uses: gawaooooo-sandbox/learn-github-actions-reusable-workflows/.github/workflows/reusable-lint.yml@feature/test-lint
+    uses: gawaooooo-sandbox/learn-github-actions-reusable-workflows/.github/workflows/reusable-lint.yml@main
     with:
       install-options: '--ignore-scripts'
       enable-format-check: true
