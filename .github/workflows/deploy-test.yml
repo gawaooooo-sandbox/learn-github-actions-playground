@@ -55,9 +55,13 @@ jobs:
     timeout-minutes: 5
     environment: alpha
     outputs:
-      BASE_URL: ${{ vars.BASE_URL }}
-      TEST_HOGE: ${{ vars.TEST_HOGE }}
-
+      BASE_URL: ${{ steps.base-url.outputs.base-url }}
+      TEST_HOGE: ${{ steps.test-hoge.outputs.test-hoge }}
+    steps:
+      - id: base-url
+        run: echo "base-url=${{ vars.BASE_URL}}" >> "$GITHUB_OUTPUT"
+      - id: test-hoge
+        run: echo "test-hoge=${{ vars.TEST_HOGE }}" >> "$GITHUB_OUTPUT"
   deploy:
     needs: [merge-branch, setup]
     concurrency:
