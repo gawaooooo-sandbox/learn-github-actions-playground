@@ -19,6 +19,9 @@ jobs:
       enable-format-check: true
       enable-type-check: true
       typecheck-script: 'npm run type:check'
+    permissions:
+      contents: read
+      packages: read
 
   test:
     uses: ./.github/workflows/test.yml
@@ -49,26 +52,38 @@ jobs:
 
   deploy:
     needs: [merge-branch]
-    runs-on: ubuntu-22.04
-    timeout-minutes: 10
     concurrency:
       group: ${{ github.workflow }}-${{ github.ref }}
       cancel-in-progress: true
-    environment: alpha
+    # environment: alpha
+    uses: gawaooooo-sandbox/learn-github-actions-reusable-workflows/.github/workflows/reusable-deploy.yml@main
+    with:
+      environment: alpha
+      checkout-ref: develop
+      build-environments: '{"BASE_URL": "${{ vars.BASE_URL }}, "TEST_HOGE": "${{ vars.TEST_HOGE }}"}'
+      s3-uri: 's3://example-bucket-name'
+      use-aws: false
+    secrets:
+      node-auth-token: ${{ secrets.GITHUB_TOKEN }}
+      aws-role-arn: ${{ secrets.AWS_ROLE_ARN }}
+    permissions:
+      contents: read
+      packages: read
+      id-token: write
 
-    steps:
-      - name: Setup Node.js and Install dependencies
-        uses: gawaooooo-sandbox/learn-github-actions-custom/composite/node-npm-setup@main
-        with:
-          checkout-ref: develop
+    # steps:
+    #   - name: Setup Node.js and Install dependencies
+    #     uses: gawaooooo-sandbox/learn-github-actions-custom/composite/node-npm-setup@main
+    #     with:
+    #       checkout-ref: develop
 
-      - name: Build
-        run: npm run generate
-        env:
-          BASE_URL: ${{vars.BASE_URL}}
+    #   - name: Build
+    #     run: npm run generate
+    #     env:
+    #       BASE_URL: ${{vars.BASE_URL}}
 
-      - name: Deploy to testing environment
-        run: |
-          echo "Deploying to testing environment"
-          ls -la dist/
-          echo "${{vars.TEST_HOGE}}"
+    #   - name: Deploy to testing environment
+    #     run: |
+    #       echo "Deploying to testing environment"
+    #       ls -la dist/
+    #       echo "${{vars.TEST_HOGE}}"
