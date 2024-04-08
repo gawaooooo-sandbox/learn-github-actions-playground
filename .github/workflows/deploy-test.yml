@@ -1,5 +1,5 @@
 name: Deploy to testing environment
-run-name: ${{ github.workflow }} on ${{ github.ref_type }} ${{ github.ref_name }} [${{ github.sha }}]
+run-name: ${{ github.workflow }}
 
 on:
   pull_request:
@@ -19,12 +19,30 @@ jobs:
       enable-format-check: true
       enable-type-check: true
       typecheck-script: 'npm run type:check'
+    permissions:
+      contents: read
+      packages: read
 
   test:
     uses: ./.github/workflows/test.yml
 
-  merge-branch:
+  # environment variable を reusable workflow に設定するために OUTPUT を使う
+  setup:
     needs: [lint, test]
+    runs-on: ubuntu-22.04
+    timeout-minutes: 5
+    environment: alpha
+    outputs:
+      BASE_URL: ${{ steps.base-url.outputs.base-url }}
+      TEST_HOGE: ${{ steps.test-hoge.outputs.test-hoge }}
+    steps:
+      - id: base-url
+        run: echo "base-url=${{ vars.BASE_URL}}" >> "$GITHUB_OUTPUT"
+      - id: test-hoge
+        run: echo "test-hoge=${{ vars.TEST_HOGE }}" >> "$GITHUB_OUTPUT"
+
+  merge-branch:
+    needs: [setup]
     runs-on: ubuntu-22.04
     timeout-minutes: 10
     concurrency:
@@ -48,41 +66,21 @@ jobs:
           target_branch: develop
 
   deploy:
-    needs: [merge-branch]
-    runs-on: ubuntu-22.04
-    timeout-minutes: 10
+    needs: [merge-branch, setup]
     concurrency:
       group: ${{ github.workflow }}-${{ github.ref }}
       cancel-in-progress: true
-    environment: alpha
-
-    steps:
-      # - run: cat $GITHUB_EVENT_PATH
-      - name: Checkout code
-        uses: actions/checkout@v4
-        with:
-          ref: develop
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version-file: .nvmrc
-          cache: 'npm'
-
-      - name: Install dependencies
-        run: npm ci
-        env:
-          # CI上では Husky を install しない
-          # https://typicode.github.io/husky/how-to.html#ci-server-and-docker
-          HUSKY: 0
-
-      - name: Build
-        run: npm run generate
-        env:
-          BASE_URL: ${{vars.BASE_URL}}
-
-      - name: Deploy to testing environment
-        run: |
-          echo "Deploying to testing environment"
-          ls -la dist/
-          echo "${{vars.TEST_HOGE}}"
+    uses: gawaooooo-sandbox/learn-github-actions-reusable-workflows/.github/workflows/reusable-deploy.yml@main
+    with:
+      environment: alpha
+      checkout-ref: develop
+      build-environments: '["BASE_URL=${{needs.setup.outputs.BASE_URL}}", "TEST_HOGE=${{ needs.setup.outputs.TEST_HOGE }}"]'
+      s3-uri: 's3://example-bucket-name'
+      use-aws: false
+    secrets:
+      node-auth-token: ${{ secrets.GITHUB_TOKEN }}
+      aws-role-arn: ${{ secrets.AWS_ROLE_ARN }}
+    permissions:
+      contents: read
+      packages: read
+      id-token: write
