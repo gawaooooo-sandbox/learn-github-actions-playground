@@ -26,23 +26,8 @@ jobs:
   test:
     uses: ./.github/workflows/test.yml
 
-  # environment variable を reusable workflow に設定するために OUTPUT を使う
-  setup:
-    needs: [lint, test]
-    runs-on: ubuntu-22.04
-    timeout-minutes: 5
-    environment: alpha
-    outputs:
-      BASE_URL: ${{ steps.base-url.outputs.base-url }}
-      TEST_HOGE: ${{ steps.test-hoge.outputs.test-hoge }}
-    steps:
-      - id: base-url
-        run: echo "base-url=${{ vars.BASE_URL}}" >> "$GITHUB_OUTPUT"
-      - id: test-hoge
-        run: echo "test-hoge=${{ vars.TEST_HOGE }}" >> "$GITHUB_OUTPUT"
-
   merge-branch:
-    needs: [setup]
+    needs: [lint, test]
     runs-on: ubuntu-22.04
     timeout-minutes: 10
     concurrency:
@@ -65,6 +50,24 @@ jobs:
           source_ref: ${{github.head_ref}}
           target_branch: develop
 
+  # environment variable を reusable workflow に設定するために OUTPUT を使う
+  setup:
+    needs: [lint, test]
+    runs-on: ubuntu-22.04
+    timeout-minutes: 5
+    environment: alpha
+    outputs:
+      BASE_URL: ${{ steps.base-url.outputs.base-url }}
+      TEST_HOGE: ${{ steps.test-hoge.outputs.test-hoge }}
+      S3_URI: ${{ steps.s3-uri.outputs.s3-uri }}
+    steps:
+      - id: base-url
+        run: echo "base-url=${{ vars.BASE_URL}}" >> "$GITHUB_OUTPUT"
+      - id: test-hoge
+        run: echo "test-hoge=${{ vars.TEST_HOGE }}" >> "$GITHUB_OUTPUT"
+      - id: s3-uri
+        run: echo "s3-uri=${{ vars.S3_URI }}" >> "$GITHUB_OUTPUT"
+
   deploy:
     needs: [merge-branch, setup]
     concurrency:
@@ -75,7 +78,7 @@ jobs:
       environment: alpha
       checkout-ref: develop
       build-environments: '["BASE_URL=${{needs.setup.outputs.BASE_URL}}", "TEST_HOGE=${{ needs.setup.outputs.TEST_HOGE }}"]'
-      s3-uri: 's3://example-bucket-name'
+      s3-sync-command: ./dist ${{needs.setup.outputs.S3_URI}} --delete --dryrun --exclude "*.map"
       use-aws: false
     secrets:
       node-auth-token: ${{ secrets.GITHUB_TOKEN }}
