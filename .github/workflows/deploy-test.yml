@@ -75,7 +75,8 @@ jobs:
       environment: alpha
       checkout-ref: develop
       build-environments: '["BASE_URL=${{needs.setup.outputs.BASE_URL}}", "TEST_HOGE=${{ needs.setup.outputs.TEST_HOGE }}"]'
-      s3-uri: 's3://example-bucket-name'
+      # s3-uri: 's3://example-bucket-name'
+      s3-uri: '${{ vars.BASE_URL}}'
       use-aws: false
     secrets:
       node-auth-token: ${{ secrets.GITHUB_TOKEN }}
