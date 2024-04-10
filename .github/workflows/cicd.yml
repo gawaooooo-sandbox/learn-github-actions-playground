@@ -10,6 +10,7 @@ on:
       - 'public/**'
       - '.editorconfig'
       - '.gitignore'
+      - '.github/workflows/_internal**'
   push:
     branches:
       - main
@@ -18,6 +19,7 @@ on:
       - 'public/**'
       - '.editorconfig'
       - '.gitignore'
+      - '.github/workflows/_internal**'
   workflow_dispatch:
     inputs:
       environment:
