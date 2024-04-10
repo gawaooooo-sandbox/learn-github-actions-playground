@@ -21,7 +21,7 @@ on:
   workflow_dispatch:
     inputs:
       environment:
-        description: 'Environment to deploy to (alpha|prod)'
+        description: 'Environment to deploy'
         required: true
         type: environment
         default: 'prod'
@@ -38,46 +38,17 @@ jobs:
         with:
           workflow-inputs: ${{ toJSON(inputs) }}
 
-  # prepare-env:
-  #   runs-on: ubuntu-22.04
-  #   timeout-minutes: 5
-  #   environment: ${{ github.event_name == 'pull_request' && 'alpha' || inputs.environment }}
-  #   outputs:
-  #     BASE_URL: ${{ steps.base-url.outputs.base-url }}
-  #     TEST_HOGE: ${{ steps.test-hoge.outputs.test-hoge }}
-  #     S3_URI: ${{ steps.s3-uri.outputs.s3-uri }}
-  #   steps:
-  #     - name: Set outputs
-  #       id: set-outputs
-  #       run: echo
-  #     - id: base-url
-  #       run: echo "base-url=${{ vars.BASE_URL}}" >> "$GITHUB_OUTPUT"
-  #     - id: test-hoge
-  #       run: echo "test-hoge=${{ vars.TEST_HOGE }}" >> "$GITHUB_OUTPUT"
-  #     - id: s3-uri
-  #       run: echo "s3-uri=${{ vars.S3_URI }}" >> "$GITHUB_OUTPUT"
-
   prepare-env:
     runs-on: ubuntu-22.04
     timeout-minutes: 5
     environment: ${{ github.event_name == 'pull_request' && 'alpha' || inputs.environment }}
     outputs:
-      # base_url: ${{ steps.set-output.outputs.base_url }}
-      # test_hoge: ${{ steps.set-output.outputs.test_hoge }}
-      # s3_uri: ${{ steps.set-output.outputs.s3_uri }}
       build_environments: ${{ steps.set-output.outputs.build_environments }}
       s3_sync_command: ${{ steps.set-output.outputs.s3_sync_command }}
     steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-
       - name: Set outputs
         id: set-output
         run: |
-          # echo "base_url=${{ env.BASE_URL }}" >> $GITHUB_OUTPUT
-          # echo "test_hoge=${{ env.TEST_HOGE }}" >> $GITHUB_OUTPUT
-          # echo "s3_uri=${{ env.S3_URI }}" >> $GITHUB_OUTPUT
-          # build-environments と s3-sync-command の値を $GITHUB_OUTPUT に設定
           echo "build_environments=[\"BASE_URL=${{ vars.BASE_URL }}\", \"TEST_HOGE=${{ vars.TEST_HOGE }}\"]" >> $GITHUB_OUTPUT
           echo "s3_sync_command=./dist ${{ vars.S3_URI }} --delete --dryrun --exclude \"*.map\"" >> $GITHUB_OUTPUT
 
@@ -110,8 +81,6 @@ jobs:
       checkout-ref: develop
       build-environments: ${{ needs.prepare-env.outputs.build_environments }}
       s3-sync-command: ${{ needs.prepare-env.outputs.s3_sync_command }}
-      # build-environments: '["BASE_URL=${{needs.setup.outputs.BASE_URL}}", "TEST_HOGE=${{ needs.setup.outputs.TEST_HOGE }}"]'
-      # s3-sync-command: ./dist ${{needs.setup.outputs.S3_URI}} --delete --dryrun --exclude "*.map"
       enable-aws-deploy: false
     secrets:
       node-auth-token: ${{ secrets.GITHUB_TOKEN }}
@@ -132,8 +101,6 @@ jobs:
       # checkout-ref: ${{ github.ref }}
       build-environments: ${{ needs.prepare-env.outputs.build_environments }}
       s3-sync-command: ${{ needs.prepare-env.outputs.s3_sync_command }}
-      # build-environments: '["BASE_URL=${{needs.setup.outputs.BASE_URL}}", "TEST_HOGE=${{ needs.setup.outputs.TEST_HOGE }}"]'
-      # s3-sync-command: ./dist ${{needs.setup.outputs.S3_URI}} --delete --dryrun --exclude "*.map"
       enable-aws-deploy: false
     secrets:
       node-auth-token: ${{ secrets.GITHUB_TOKEN }}
