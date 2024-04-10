@@ -52,8 +52,8 @@ jobs:
       - name: Set outputs
         id: set-output
         run: |
-          echo "build_environments=[\"BASE_URL=${{ vars.BASE_URL }}\", \"TEST_HOGE=${{ vars.TEST_HOGE }}\"]" >> $GITHUB_OUTPUT
-          echo "s3_sync_command=./dist ${{ vars.S3_URI }} --delete --dryrun --exclude \"*.map\"" >> $GITHUB_OUTPUT
+          echo "build_environments=[\"BASE_URL=${{ vars.BASE_URL }}\", \"TEST_HOGE=${{ vars.TEST_HOGE }}\"]" >> "$GITHUB_OUTPUT"
+          echo "s3_sync_command=./dist ${{ vars.S3_URI }} --delete --dryrun --exclude \"*.map\"" >> "$GITHUB_OUTPUT"
 
   lint:
     if: github.event_name == 'pull_request' || github.event_name == 'push'
