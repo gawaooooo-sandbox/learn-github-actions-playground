@@ -18,13 +18,7 @@ on:
         required: false
         type: string
         default: 'npm test'
-  # workflow_dispatch:
-  # push:
-  #   paths-ignore:
-  #     - '*.md'
-  #     - 'public/**'
-  #     - '.editorconfig'
-  #     - '.gitignore'
+  workflow_dispatch:
 
 jobs:
   test:
@@ -40,6 +34,5 @@ jobs:
           checkout-ref: ${{ inputs.checkout-ref }}
           npm-install-options: ${{ inputs.install-options }}
 
-      # TODO: test は composite action のほうがいいかもしれない
       - name: Run tests
         run: ${{ inputs.test-script }}
