@@ -1,0 +1,112 @@
+name: CI/CD
+run-name: ${{ github.workflow }} on ${{ github.ref_type }} ${{ github.ref_name }} [${{ github.sha }}]
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths-ignore:
+      - '**.md'
+      - 'public/**'
+      - '.editorconfig'
+      - '.gitignore'
+  push:
+    branches:
+      - main
+    paths-ignore:
+      - '**.md'
+      - 'public/**'
+      - '.editorconfig'
+      - '.gitignore'
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to deploy'
+        required: true
+        type: environment
+        default: 'prod'
+
+jobs:
+  pre-processing:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    steps:
+      - name: create inputs summary
+        uses: gawaooooo-sandbox/learn-github-actions-custom/composite/inputs-summary@main
+        with:
+          workflow-inputs: ${{ toJSON(inputs) }}
+
+  prepare-env:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 5
+    environment: ${{ github.event_name == 'pull_request' && 'alpha' || inputs.environment }}
+    outputs:
+      build_environments: ${{ steps.set-output.outputs.build_environments }}
+      s3_sync_command: ${{ steps.set-output.outputs.s3_sync_command }}
+    steps:
+      - name: Set outputs
+        id: set-output
+        run: |
+          echo "build_environments=[\"BASE_URL=${{ vars.BASE_URL }}\", \"TEST_HOGE=${{ vars.TEST_HOGE }}\"]" >> $GITHUB_OUTPUT
+          echo "s3_sync_command=./dist ${{ vars.S3_URI }} --delete --dryrun --exclude \"*.map\"" >> $GITHUB_OUTPUT
+
+  lint:
+    if: github.event_name == 'pull_request' || github.event_name == 'push'
+    uses: gawaooooo-sandbox/learn-github-actions-reusable-workflows/.github/workflows/reusable-lint.yml@main
+    with:
+      install-options: '--ignore-scripts'
+      enable-format-check: true
+      enable-type-check: true
+      typecheck-script: 'npm run type:check'
+    permissions:
+      contents: read
+      packages: read
+
+  test:
+    if: github.event_name == 'pull_request' || github.event_name == 'push'
+    uses: ./.github/workflows/test.yml
+
+  merge-and-deploy:
+    if: github.event_name == 'pull_request'
+    needs: [lint, test, prepare-env]
+    uses: gawaooooo-sandbox/learn-github-actions-reusable-workflows/.github/workflows/reusable-deploy.yml@main
+    with:
+      environment: alpha
+      enable-auto-merge: true
+      auto-merge-target-branch: develop
+      auto-merge-source-ref: ${{ github.head_ref }}
+      # TODO: checkout-ref の名前を変更したほうがわかりやすいかも
+      checkout-ref: develop
+      build-environments: ${{ needs.prepare-env.outputs.build_environments }}
+      s3-sync-command: ${{ needs.prepare-env.outputs.s3_sync_command }}
+      enable-aws-deploy: false
+    secrets:
+      node-auth-token: ${{ secrets.GITHUB_TOKEN }}
+      github-token: ${{ secrets.GITHUB_TOKEN }}
+      aws-role-arn: ${{ secrets.AWS_ROLE_ARN }}
+    permissions:
+      contents: write
+      packages: read
+      id-token: write
+
+  manual-deploy:
+    if: github.event_name == 'workflow_dispatch'
+    needs: [prepare-env]
+    uses: gawaooooo-sandbox/learn-github-actions-reusable-workflows/.github/workflows/reusable-deploy.yml@main
+    with:
+      environment: ${{ inputs.environment }}
+      # enable-auto-merge: false
+      # checkout-ref: ${{ github.ref }}
+      build-environments: ${{ needs.prepare-env.outputs.build_environments }}
+      s3-sync-command: ${{ needs.prepare-env.outputs.s3_sync_command }}
+      enable-aws-deploy: false
+    secrets:
+      node-auth-token: ${{ secrets.GITHUB_TOKEN }}
+      github-token: ${{ secrets.GITHUB_TOKEN }}
+      aws-role-arn: ${{ secrets.AWS_ROLE_ARN }}
+    permissions:
+      contents: write
+      packages: read
+      id-token: write
