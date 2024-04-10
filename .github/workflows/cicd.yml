@@ -39,6 +39,7 @@ jobs:
           workflow-inputs: ${{ toJSON(inputs) }}
 
   prepare-env:
+    if: github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-22.04
     timeout-minutes: 5
     environment: ${{ github.event_name == 'pull_request' && 'alpha' || inputs.environment }}
