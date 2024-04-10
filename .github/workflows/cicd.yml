@@ -68,9 +68,6 @@ jobs:
       build_environments: ${{ steps.set-output.outputs.build_environments }}
       s3_sync_command: ${{ steps.set-output.outputs.s3_sync_command }}
     steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-
       - name: Set outputs
         id: set-output
         run: |
