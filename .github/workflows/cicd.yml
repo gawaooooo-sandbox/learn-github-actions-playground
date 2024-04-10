@@ -1,5 +1,5 @@
 name: CI/CD
-run-name: '${{ github.workflow }} for ${{ github.ref_name }} [${{ github.sha }}] Triggered by: ${{ github.event_name }}'
+run-name: '${{ github.workflow }} for ${{ github.ref_name }} Triggered by: ${{ github.event_name }} / ${{ inputs.environment }} [${{ github.sha }}]'
 
 on:
   pull_request:
