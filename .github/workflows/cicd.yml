@@ -57,7 +57,7 @@ jobs:
 
   lint:
     if: github.event_name == 'pull_request' || github.event_name == 'push'
-    uses: gawaooooo-sandbox/learn-github-actions-reusable-workflows/.github/workflows/reusable-lint.yml@main
+    uses: gawaooooo-sandbox/learn-github-actions-reusable-workflows/.github/workflows/reusable-lint.yml@v1
     with:
       install-options: '--ignore-scripts'
       enable-format-check: true
@@ -74,7 +74,7 @@ jobs:
   merge-and-deploy:
     if: github.event_name == 'pull_request'
     needs: [lint, test, prepare-env]
-    uses: gawaooooo-sandbox/learn-github-actions-reusable-workflows/.github/workflows/reusable-deploy.yml@main
+    uses: gawaooooo-sandbox/learn-github-actions-reusable-workflows/.github/workflows/reusable-deploy.yml@v1
     with:
       environment: alpha
       enable-auto-merge: true
@@ -97,7 +97,7 @@ jobs:
   manual-deploy:
     if: github.event_name == 'workflow_dispatch'
     needs: [prepare-env]
-    uses: gawaooooo-sandbox/learn-github-actions-reusable-workflows/.github/workflows/reusable-deploy.yml@main
+    uses: gawaooooo-sandbox/learn-github-actions-reusable-workflows/.github/workflows/reusable-deploy.yml@v1
     with:
       environment: ${{ inputs.environment }}
       # enable-auto-merge: false
