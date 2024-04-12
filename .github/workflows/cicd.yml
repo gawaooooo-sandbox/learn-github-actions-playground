@@ -1,5 +1,5 @@
 name: CI/CD
-run-name: '${{ github.workflow }} for ${{ github.ref_name }} Triggered by: ${{ github.event_name }} / ${{ inputs.environment }} [${{ github.sha }}]'
+run-name: '${{ github.workflow }} for ${{ github.ref_name }} / ${{ inputs.environment }} [${{ github.event_name }}] [${{ github.sha }}]'
 
 on:
   pull_request:
@@ -29,32 +29,6 @@ on:
         default: 'prod'
 
 jobs:
-  pre-processing:
-    runs-on: ubuntu-22.04
-    timeout-minutes: 5
-    permissions:
-      contents: read
-    steps:
-      - name: create inputs summary
-        uses: gawaooooo-sandbox/learn-github-actions-custom/composite/inputs-summary@v1
-        with:
-          workflow-inputs: ${{ toJSON(inputs) }}
-
-  prepare-env:
-    if: github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch'
-    runs-on: ubuntu-22.04
-    timeout-minutes: 5
-    environment: ${{ github.event_name == 'pull_request' && 'alpha' || inputs.environment }}
-    outputs:
-      build_environments: ${{ steps.set-output.outputs.build_environments }}
-      s3_sync_command: ${{ steps.set-output.outputs.s3_sync_command }}
-    steps:
-      - name: Set outputs
-        id: set-output
-        run: |
-          echo "build_environments=[\"BASE_URL=${{ vars.BASE_URL }}\", \"TEST_HOGE=${{ vars.TEST_HOGE }}\"]" >> "$GITHUB_OUTPUT"
-          echo "s3_sync_command=./dist ${{ vars.S3_URI }} --delete --dryrun --exclude \"*.map\"" >> "$GITHUB_OUTPUT"
-
   lint:
     if: github.event_name == 'pull_request' || github.event_name == 'push'
     uses: gawaooooo-sandbox/learn-github-actions-reusable-workflows/.github/workflows/reusable-lint.yml@v1
@@ -71,10 +45,28 @@ jobs:
     if: github.event_name == 'pull_request' || github.event_name == 'push'
     uses: ./.github/workflows/test.yml
 
+  setup-deployment-config:
+    if: github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-22.04
+    timeout-minutes: 5
+    environment: ${{ github.event_name == 'pull_request' && 'alpha' || inputs.environment }}
+    outputs:
+      build-environments: ${{ steps.set-output.outputs.build-environments }}
+      s3-sync-command: ${{ steps.set-output.outputs.s3-sync-command }}
+    steps:
+      - name: Set outputs
+        id: set-output
+        uses: gawaooooo-sandbox/learn-github-actions-custom/composite/setup-deployment-config@v2
+        with:
+          build-environments: >-
+            BASE_URL="${{ vars.BASE_URL }}"
+            TEST_HOGE="${{ vars.TEST_HOGE }}"
+          s3-sync-command: ./dist ${{ vars.S3_URI }} --delete --dryrun --exclude "*.map" --exclude "test/*.html"
+
   merge-and-deploy:
     if: github.event_name == 'pull_request'
-    needs: [lint, test, prepare-env]
-    uses: gawaooooo-sandbox/learn-github-actions-reusable-workflows/.github/workflows/reusable-deploy.yml@v1
+    needs: [lint, test, setup-deployment-config]
+    uses: gawaooooo-sandbox/learn-github-actions-reusable-workflows/.github/workflows/reusable-deploy.yml@v2
     with:
       environment: alpha
       enable-auto-merge: true
@@ -82,8 +74,8 @@ jobs:
       auto-merge-source-ref: ${{ github.head_ref }}
       # TODO: checkout-ref の名前を変更したほうがわかりやすいかも
       checkout-ref: develop
-      build-environments: ${{ needs.prepare-env.outputs.build_environments }}
-      s3-sync-command: ${{ needs.prepare-env.outputs.s3_sync_command }}
+      build-environments: ${{ needs.setup-deployment-config.outputs.build-environments }}
+      s3-sync-command: ${{ needs.setup-deployment-config.outputs.s3-sync-command }}
       enable-aws-deploy: false
     secrets:
       node-auth-token: ${{ secrets.GITHUB_TOKEN }}
@@ -96,14 +88,14 @@ jobs:
 
   manual-deploy:
     if: github.event_name == 'workflow_dispatch'
-    needs: [prepare-env]
-    uses: gawaooooo-sandbox/learn-github-actions-reusable-workflows/.github/workflows/reusable-deploy.yml@v1
+    needs: [setup-deployment-config]
+    uses: gawaooooo-sandbox/learn-github-actions-reusable-workflows/.github/workflows/reusable-deploy.yml@v2
     with:
       environment: ${{ inputs.environment }}
       # enable-auto-merge: false
       # checkout-ref: ${{ github.ref }}
-      build-environments: ${{ needs.prepare-env.outputs.build_environments }}
-      s3-sync-command: ${{ needs.prepare-env.outputs.s3_sync_command }}
+      build-environments: ${{ needs.setup-deployment-config.outputs.build-environments }}
+      s3-sync-command: ${{ needs.setup-deployment-config.outputs.s3-sync-command }}
       enable-aws-deploy: false
     secrets:
       node-auth-token: ${{ secrets.GITHUB_TOKEN }}
