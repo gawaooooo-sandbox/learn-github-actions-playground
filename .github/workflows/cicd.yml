@@ -61,7 +61,7 @@ jobs:
           build-environments: >-
             BASE_URL="${{ vars.BASE_URL }}"
             TEST_HOGE="${{ vars.TEST_HOGE }}"
-          s3-sync-command: ./dist "${{ vars.S3_URI }}" --delete --dryrun --exclude "*.map" --exclude "test/*.html"
+          s3-sync-command: ./dist ${{ vars.S3_URI }} --delete --dryrun --exclude "*.map" --exclude "test/*.html"
 
   merge-and-deploy:
     if: github.event_name == 'pull_request'
