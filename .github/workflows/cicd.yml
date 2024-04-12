@@ -45,20 +45,6 @@ jobs:
     if: github.event_name == 'pull_request' || github.event_name == 'push'
     uses: ./.github/workflows/test.yml
 
-  # prepare-env:
-  #   if: github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch'
-  #   runs-on: ubuntu-22.04
-  #   timeout-minutes: 5
-  #   environment: ${{ github.event_name == 'pull_request' && 'alpha' || inputs.environment }}
-  #   outputs:
-  #     build_environments: ${{ steps.set-output.outputs.build_environments }}
-  #     s3_sync_command: ${{ steps.set-output.outputs.s3_sync_command }}
-  #   steps:
-  #     - name: Set outputs
-  #       id: set-output
-  #       run: |
-  #         echo "build_environments=[\"BASE_URL=${{ vars.BASE_URL }}\", \"TEST_HOGE=${{ vars.TEST_HOGE }}\"]" >> "$GITHUB_OUTPUT"
-  #         echo "s3_sync_command=./dist ${{ vars.S3_URI }} --delete --dryrun --exclude \"*.map\"" >> "$GITHUB_OUTPUT"
   setup-deployment-config:
     if: github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-22.04
@@ -70,15 +56,17 @@ jobs:
     steps:
       - name: Set outputs
         id: set-output
-        uses: gawaooooo-sandbox/learn-github-actions-custom/composite/setup-deployment-config@v1
+        uses: gawaooooo-sandbox/learn-github-actions-custom/composite/setup-deployment-config@v2
         with:
-          build-environments: '["BASE_URL=${{ vars.BASE_URL }}", "TEST_HOGE=${{ vars.TEST_HOGE }}"]'
-          s3-sync-command: './dist ${{ vars.S3_URI }} --delete --dryrun --exclude "*.map"'
+          build-environments: >-
+            BASE_URL="${{ vars.BASE_URL }}"
+            TEST_HOGE="${{ vars.TEST_HOGE }}"
+          s3-sync-command: ./dist "${{ vars.S3_URI }}" --delete --dryrun --exclude "*.map" --exclude "test/*.html"
 
   merge-and-deploy:
     if: github.event_name == 'pull_request'
     needs: [lint, test, setup-deployment-config]
-    uses: gawaooooo-sandbox/learn-github-actions-reusable-workflows/.github/workflows/reusable-deploy.yml@v1
+    uses: gawaooooo-sandbox/learn-github-actions-reusable-workflows/.github/workflows/reusable-deploy.yml@v2
     with:
       environment: alpha
       enable-auto-merge: true
@@ -101,7 +89,7 @@ jobs:
   manual-deploy:
     if: github.event_name == 'workflow_dispatch'
     needs: [setup-deployment-config]
-    uses: gawaooooo-sandbox/learn-github-actions-reusable-workflows/.github/workflows/reusable-deploy.yml@feature/pre-processing
+    uses: gawaooooo-sandbox/learn-github-actions-reusable-workflows/.github/workflows/reusable-deploy.yml@v2
     with:
       environment: ${{ inputs.environment }}
       # enable-auto-merge: false
