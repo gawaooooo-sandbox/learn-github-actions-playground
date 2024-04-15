@@ -7,16 +7,16 @@ on:
     paths: ['**.yml', '**.yaml']
   workflow_dispatch:
 
-defaults:
-  run:
-    shell: bash
-
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+defaults:
+  run:
+    shell: bash
+
 jobs:
   call:
-    uses: gawaooooo-sandbox/learn-github-actions-reusable-workflows/.github/workflows/reusable-yaml-lint.yml@main
+    uses: gawaooooo-sandbox/learn-github-actions-reusable-workflows/.github/workflows/yaml-lint.yml@v3
     permissions:
       contents: read
