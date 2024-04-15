@@ -31,9 +31,9 @@ on:
 jobs:
   lint:
     if: github.event_name == 'pull_request' || github.event_name == 'push'
-    uses: gawaooooo-sandbox/learn-github-actions-reusable-workflows/.github/workflows/reusable-lint.yml@v1
+    uses: gawaooooo-sandbox/learn-github-actions-reusable-workflows/.github/workflows/lint.yml@v3
     with:
-      install-options: '--ignore-scripts'
+      npm-install-options: '--ignore-scripts'
       enable-format-check: true
       enable-type-check: true
       typecheck-script: 'npm run type:check'
@@ -56,7 +56,7 @@ jobs:
     steps:
       - name: Set outputs
         id: set-output
-        uses: gawaooooo-sandbox/learn-github-actions-custom/composite/setup-deployment-config@v2
+        uses: gawaooooo-sandbox/learn-github-actions-custom/composite/setup-deployment-config@v3
         with:
           build-environments: >-
             BASE_URL="${{ vars.BASE_URL }}"
@@ -66,7 +66,7 @@ jobs:
   merge-and-deploy:
     if: github.event_name == 'pull_request'
     needs: [lint, test, setup-deployment-config]
-    uses: gawaooooo-sandbox/learn-github-actions-reusable-workflows/.github/workflows/reusable-deploy.yml@v2
+    uses: gawaooooo-sandbox/learn-github-actions-reusable-workflows/.github/workflows/deploy.yml@v3
     with:
       environment: alpha
       enable-auto-merge: true
@@ -89,7 +89,7 @@ jobs:
   manual-deploy:
     if: github.event_name == 'workflow_dispatch'
     needs: [setup-deployment-config]
-    uses: gawaooooo-sandbox/learn-github-actions-reusable-workflows/.github/workflows/reusable-deploy.yml@v2
+    uses: gawaooooo-sandbox/learn-github-actions-reusable-workflows/.github/workflows/deploy.yml@v3
     with:
       environment: ${{ inputs.environment }}
       # enable-auto-merge: false
