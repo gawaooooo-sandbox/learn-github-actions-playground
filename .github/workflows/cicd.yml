@@ -5,21 +5,25 @@ on:
   pull_request:
     branches:
       - main
-    paths-ignore:
-      - '**.md'
-      - 'public/**'
-      - '.editorconfig'
-      - '.gitignore'
-      - '.github/workflows/_internal**'
+    paths:
+      - 'src/**'
+      - '*.ts'
+      - '*.cjs'
+      - 'tsconfig.json'
+      - 'package.json'
+      - '.github/workflows/cicd.yml'
+
   push:
     branches:
       - main
-    paths-ignore:
-      - '**.md'
-      - 'public/**'
-      - '.editorconfig'
-      - '.gitignore'
-      - '.github/workflows/_internal**'
+    paths:
+      - 'src/**'
+      - '*.ts'
+      - '*.cjs'
+      - 'tsconfig.json'
+      - 'package.json'
+      - '.github/workflows/cicd.yml'
+
   workflow_dispatch:
     inputs:
       environment:
