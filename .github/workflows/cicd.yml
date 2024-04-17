@@ -75,9 +75,6 @@ jobs:
       environment: alpha
       enable-auto-merge: true
       auto-merge-target-branch: develop
-      auto-merge-source-ref: ${{ github.head_ref }}
-      # TODO: checkout-ref の名前を変更したほうがわかりやすいかも
-      checkout-ref: develop
       build-environments: ${{ needs.setup-deployment-config.outputs.build-environments }}
       s3-sync-command: ${{ needs.setup-deployment-config.outputs.s3-sync-command }}
       enable-aws-deploy: false
