@@ -3,7 +3,7 @@ run-name: ${{ github.workflow }} for ${{ github.ref_name }} [${{ github.event_na
 
 on:
   pull_request:
-    types: [opened, synchronize, labeled, reopened]
+    types: [opened, synchronize, labeled, reopened, closed]
     branches:
       - main
   workflow_dispatch:
@@ -18,14 +18,14 @@ concurrency:
 
 jobs:
   lint:
-    if: github.event_name == 'pull_request' && github.event.action != 'labeled'
+    if: github.event_name == 'pull_request' && github.event.action != 'labeled' && github.event.action != 'closed'
     uses: gawaooooo-sandbox/learn-github-actions-reusable-workflows/.github/workflows/lint.yml@v3
     permissions:
       contents: read
       packages: read
 
   test:
-    if: github.event_name == 'pull_request' && github.event.action != 'labeled'
+    if: github.event_name == 'pull_request' && github.event.action != 'labeled' && github.event.action != 'closed'
     uses: ./.github/workflows/test.yml
 
   # build-and-test:
