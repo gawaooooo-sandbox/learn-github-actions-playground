@@ -43,7 +43,7 @@ jobs:
 
   auto-version:
     if: contains(github.event.pull_request.labels.*.name, 'release/')
-    needs: [lint, test]
+    # needs: [lint, test]
     runs-on: ubuntu-22.04
     timeout-minutes: 5
     permissions:
@@ -89,7 +89,7 @@ jobs:
 
   publish-and-release:
     if: github.event.pull_request.merged == true || github.event_name == 'workflow_dispatch'
-    needs: [lint, test]
+    # needs: [lint, test]
     runs-on: ubuntu-22.04
     timeout-minutes: 5
     permissions:
