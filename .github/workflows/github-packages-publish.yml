@@ -47,7 +47,6 @@ jobs:
 
   auto-version:
     if: contains(join(github.event.pull_request.labels.*.name), 'release/')
-    # if: contains(github.event.pull_request.labels.*.name, 'release/')
     # needs: [lint, test]
     runs-on: ubuntu-22.04
     timeout-minutes: 5
@@ -57,27 +56,28 @@ jobs:
       - name: List labels
         run: |
           echo "Labels: ${{ toJSON(github.event.pull_request.labels) }}"
-      # - name: Setup Node.js and Install dependencies
-      #   uses: gawaooooo-sandbox/learn-github-actions-custom/composite/node-setup-and-dependencies@v3
-      #   with:
-      #     checkout-ref: ${{ github.head_ref}}
-      # - name: Configure Git
-      #   run: |
-      #     git config --global user.name "github-actions[bot]"
-      #     git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
-      # - name: Bump version and push tag
-      #   run: |
-      #     set -xeu
+      - name: Setup Node.js and Install dependencies
+        uses: gawaooooo-sandbox/learn-github-actions-custom/composite/node-setup-and-dependencies@v3
+        with:
+          checkout-ref: ${{ github.head_ref}}
+      - name: Configure Git
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
-      #     version_label="$(echo "${LABEL_NAME}" | cut -d'/' -f2)"
-      #     echo "Bumping version to $version_label"
+      - name: Bump version and push tag
+        run: |
+          set -xeu
 
-      #     npm version "$version_label" -m "chore(release): bump version to %s [skip ci]"
-      #     git push origin HEAD:"${HEAD_REF}" --follow-tags
-      #   env:
-      #     LABEL_NAME: ${{ github.event.label.name }}
-      #     HEAD_REF: ${{ github.head_ref }}
+          version_label="$(echo "${LABEL_NAME}" | cut -d'/' -f2)"
+          echo "Bumping version to $version_label"
+
+          npm version "$version_label" -m "chore(release): bump version to %s [skip ci]"
+          git push origin HEAD:"${HEAD_REF}" --follow-tags
+        env:
+          LABEL_NAME: ${{ github.event.label.name }}
+          HEAD_REF: ${{ github.head_ref }}
 
   publish-and-release:
     if: github.event.pull_request.merged == true || github.event_name == 'workflow_dispatch'
