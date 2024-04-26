@@ -76,11 +76,11 @@ jobs:
         run: |
           set -xeu
 
-          version_label=$(echo "${LABEL_NAME}" | cut -d'/' -f2)
+          version_label=$(echo "$LABEL_NAME" | cut -d'/' -f2)
           echo "Bumping version to $version_label"
 
           npm version $version_label -m "chore(release): bump version to %s [skip ci]"
-          git push origin HEAD:"${HEAD_REF}" --follow-tags
+          git push origin HEAD:"$HEAD_REF" --follow-tags
         env:
           LABEL_NAME: ${{ github.event.label.name }}
           HEAD_REF: ${{ github.head_ref }}
@@ -128,8 +128,8 @@ jobs:
         run: |
           set -xeu
 
-          if [ "${{ github.event_name }}" == "workflow_dispatch" ] && [ -n "${VERSION_TAG}" ]; then
-            echo "tag=${VERSION_TAG}" >> "$GITHUB_OUTPUT"
+          if [ "${{ github.event_name }}" == "workflow_dispatch" ] && [ -n "$VERSION_TAG" ]; then
+            echo "tag=$VERSION_TAG" >> "$GITHUB_OUTPUT"
           else
             latest_tag=$(git describe --tags $(git rev-list --tags --max-count=1))
             echo "tag=$latest_tag" >> "$GITHUB_OUTPUT"
