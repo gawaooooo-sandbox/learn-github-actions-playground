@@ -1,0 +1,142 @@
+name: GitHub Packages Publish
+run-name: '${{ github.workflow }} for ${{ github.ref_name }} / ${{ inputs.versionTag}} [${{ github.event_name }}] [${{ github.sha }}]'
+
+on:
+  pull_request:
+    types: [opened, synchronize, labeled, reopened]
+    branches:
+      - main
+  workflow_dispatch:
+    inputs:
+      versionTag:
+        description: 'Tag version to publish'
+        required: true
+
+jobs:
+  lint:
+    uses: gawaooooo-sandbox/learn-github-actions-reusable-workflows/.github/workflows/lint.yml@v3
+    permissions:
+      contents: read
+      packages: read
+
+  test:
+    uses: ./.github/workflows/test.yml
+
+  # build-and-test:
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - name: Checkout code
+  #       uses: actions/checkout@v2
+
+  #     - name: Setup Node.js
+  #       uses: actions/setup-node@v2
+  #       with:
+  #         node-version: '14'
+
+  #     - name: Install dependencies
+  #       run: npm install
+
+  #     - name: Run tests
+  #       run: npm test
+
+  auto-version:
+    if: contains(github.event.pull_request.labels.*.name, 'release/')
+    needs: [lint, test]
+    runs-on: ubuntu-22.04
+    timeout-minutes: 5
+    permissions:
+      contents: write
+    steps:
+      - name: Setup Node.js and Install dependencies
+        uses: gawaooooo-sandbox/learn-github-actions-custom/composite/node-setup-and-dependencies@v3
+        with:
+          checkout-ref: ${{ github.head_ref}}
+
+      # - name: Checkout code
+      #   uses: actions/checkout@v2
+      #   with:
+      #     ref: ${{ github.event.pull_request.head.ref }}
+      #     token: ${{ secrets.GITHUB_TOKEN }}
+      #     fetch-depth: 0
+
+      # - name: Setup Node.js
+      #   uses: actions/setup-node@v4
+      #   with:
+      #     node-version: '14'
+
+      # - name: Install dependencies
+      #   run: npm install
+
+      - name: Configure Git
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: Bump version and push tag
+        run: |
+          set -xeu
+
+          version_label=$(echo ${{ github.event.label.name }} | cut -d'/' -f2)
+          echo "Bumping version to $version_label"
+
+          npm version $version_label -m "chore(release): bump version to %s [skip ci]"
+          git push origin HEAD:${{ github.head_ref }} --follow-tags
+
+  publish-and-release:
+    if: github.event.pull_request.merged == true || github.event_name == 'workflow_dispatch'
+    needs: [lint, test]
+    runs-on: ubuntu-22.04
+    timeout-minutes: 5
+    permissions:
+      contents: write
+      packages: write
+    steps:
+      - name: Setup Node.js and Install dependencies
+        uses: gawaooooo-sandbox/learn-github-actions-custom/composite/node-setup-and-dependencies@v3
+        with:
+          npm-registry-url: 'https://npm.pkg.github.com/'
+          npm-scope: '@{{ github.repository_owner }}'
+
+      # - name: Checkout code
+      #   uses: actions/checkout@v4
+
+      # - name: Setup Node.js
+      #   uses: actions/setup-node@v4
+      #   with:
+      #     node-version: '14'
+      #     registry-url: 'https://npm.pkg.github.com/'
+
+      # - name: Install dependencies
+      #   run: npm install
+
+      - name: Publish to GitHub Packages
+        run: |
+          set -xeu
+
+          npm publish
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # - name: Setup GitHub CLI
+      #   run: sudo apt update && sudo apt install gh
+
+      - name: Get latest tag (fallback to workflow_dispatch input if available)
+        id: get_tag
+        run: |
+          set -xeu
+
+          if [ "${{ github.event_name }}" == "workflow_dispatch" ] && [ -n "${{ github.event.inputs.versionTag }}" ]; then
+            echo "tag=${{ github.event.inputs.versionTag }}" >> "$GITHUB_OUTPUT"
+          else
+            latest_tag=$(git describe --tags $(git rev-list --tags --max-count=1))
+            echo "tag=$latest_tag" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Create GitHub Release
+        run: |
+          set -xeu
+
+          # gh auth setup-git && gh release create ${{ steps.get_tag.outputs.tag }} --notes "New release ${{ steps.get_tag.outputs.tag }}"
+          gh release create ${{ steps.get_tag.outputs.tag }} --title ${{ steps.get_tag.outputs.tag }} --generate-notes
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

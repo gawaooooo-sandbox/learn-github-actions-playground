@@ -28,9 +28,15 @@ on:
     inputs:
       environment:
         description: 'Environment to deploy'
-        required: true
         type: environment
+        required: true
         default: 'prod'
+
+      s3-dryrun:
+        description: 'Dryrun for S3 sync'
+        type: boolean
+        required: false
+        default: false
 
 jobs:
   lint:
