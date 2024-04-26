@@ -6,6 +6,14 @@ on:
     types: [opened, synchronize, labeled, reopened, closed]
     branches:
       - main
+    paths:
+      - 'src/**'
+      - 'nuxt.config.ts'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'tsconfig.json'
+      - '.github/workflows/github-packages-publish.yml'
+
   workflow_dispatch:
     inputs:
       versionTag:
