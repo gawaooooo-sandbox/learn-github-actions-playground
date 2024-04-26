@@ -1,5 +1,5 @@
 name: GitHub Packages Publish
-run-name: '${{ github.workflow }} for ${{ github.ref_name }} / ${{ inputs.versionTag}} [${{ github.event_name }}] [${{ github.sha }}]'
+run-name: ${{ github.workflow }} for ${{ github.ref_name }} [${{ github.event_name }}${{ github.event_name == 'workflow_dispatch' && '' || (' (' + github.event.action + ')') }}]${{ github.event_name == 'workflow_dispatch' && (' [' + github.event.inputs.versionTag + ']') || '' }} [${{ github.sha }}]
 
 on:
   pull_request:
