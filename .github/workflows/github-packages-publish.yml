@@ -76,7 +76,7 @@ jobs:
         run: |
           set -xeu
 
-          version_label=$(echo "${LABEL_NAME}" | cut -d'/' -f2)
+          version_label="$(echo "${LABEL_NAME}" | cut -d'/' -f2)"
           echo "Bumping version to $version_label"
 
           npm version $version_label -m "chore(release): bump version to %s [skip ci]"
