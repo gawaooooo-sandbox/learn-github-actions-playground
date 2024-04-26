@@ -36,26 +36,8 @@ jobs:
     if: github.event_name == 'pull_request' && github.event.action != 'labeled' && github.event.action != 'closed'
     uses: ./.github/workflows/test.yml
 
-  # build-and-test:
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - name: Checkout code
-  #       uses: actions/checkout@v2
-
-  #     - name: Setup Node.js
-  #       uses: actions/setup-node@v2
-  #       with:
-  #         node-version: '14'
-
-  #     - name: Install dependencies
-  #       run: npm install
-
-  #     - name: Run tests
-  #       run: npm test
-
   auto-version:
     if: github.event.action == 'labeled' && contains(join(github.event.pull_request.labels.*.name), 'release/')
-    # needs: [lint, test]
     runs-on: ubuntu-22.04
     timeout-minutes: 5
     permissions:
