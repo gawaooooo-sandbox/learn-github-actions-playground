@@ -1,5 +1,5 @@
 {
-  "name": "nuxt-app",
+  "name": "@gawaooooo-sandbox/nuxt-app",
   "private": true,
   "type": "module",
   "scripts": {
@@ -16,6 +16,9 @@
     "type:check": "echo \"Error: no type-check specified\"",
     "prepare": "husky"
   },
+  "files": [
+    "dist"
+  ],
   "lint-staged": {
     "*.{js,ts,cjs,vue}": [
       "eslint",
