@@ -3,7 +3,7 @@ run-name: ${{ github.workflow }} for ${{ github.ref_name }} [${{ github.event_na
 
 on:
   pull_request:
-    types: [opened, synchronize, labeled, reopened]
+    types: [opened, synchronize, labeled, reopened, closed]
     branches:
       - main
   workflow_dispatch:
@@ -17,15 +17,23 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  merged:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 1
+    steps:
+      - name: Check if PR is merged
+        run: |
+          echo "PR merged: ${{ github.event.pull_request.merged }}"
+
   lint:
-    if: github.event_name == 'pull_request' && github.event.action != 'labeled'
+    if: github.event_name == 'pull_request' && github.event.action != 'labeled' && github.event.action != 'closed'
     uses: gawaooooo-sandbox/learn-github-actions-reusable-workflows/.github/workflows/lint.yml@v3
     permissions:
       contents: read
       packages: read
 
   test:
-    if: github.event_name == 'pull_request' && github.event.action != 'labeled'
+    if: github.event_name == 'pull_request' && github.event.action != 'labeled' && github.event.action != 'closed'
     uses: ./.github/workflows/test.yml
 
   # build-and-test:
@@ -61,6 +69,7 @@ jobs:
         uses: gawaooooo-sandbox/learn-github-actions-custom/composite/node-setup-and-dependencies@v3
         with:
           checkout-ref: ${{ github.head_ref}}
+
       - name: Configure Git
         run: |
           git config --global user.name "github-actions[bot]"
@@ -80,8 +89,7 @@ jobs:
           HEAD_REF: ${{ github.head_ref }}
 
   publish-and-release:
-    if: github.event.pull_request.merged == true || github.event_name == 'workflow_dispatch'
-    # needs: [lint, test]
+    if: github.event_name == 'pull_request' && github.event.pull_request.merged == true || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-22.04
     timeout-minutes: 5
     permissions:
@@ -91,8 +99,8 @@ jobs:
       - name: Setup Node.js and Install dependencies
         uses: gawaooooo-sandbox/learn-github-actions-custom/composite/node-setup-and-dependencies@v3
         with:
-          npm-registry-url: 'https://npm.pkg.github.com/'
-          npm-scope: '@{{ github.repository_owner }}'
+          npm-registry-url: https://npm.pkg.github.com
+          npm-scope: '@${{ github.repository_owner }}'
 
       # - name: Checkout code
       #   uses: actions/checkout@v4
