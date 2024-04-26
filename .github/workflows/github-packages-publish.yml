@@ -82,14 +82,14 @@ jobs:
           version_label="$(echo "${LABEL_NAME}" | cut -d'/' -f2)"
           echo "Bumping version to $version_label"
 
-          npm version "$version_label" -m "chore(release): bump version to %s [skip ci]"
+          npm version "$version_label" -m "chore(release): bump version to %s"
           git push origin HEAD:"${HEAD_REF}" --follow-tags
         env:
           LABEL_NAME: ${{ github.event.label.name }}
           HEAD_REF: ${{ github.head_ref }}
 
   publish-and-release:
-    if: github.event_name == 'pull_request' && github.event.pull_request.merged == true || github.event_name == 'workflow_dispatch'
+    if: github.event.pull_request.merged == true || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-22.04
     timeout-minutes: 5
     permissions:
