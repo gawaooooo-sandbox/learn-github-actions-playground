@@ -76,13 +76,13 @@ jobs:
         run: |
           set -xeu
 
-          version_label=$(echo "${{ github.event.label.name }}" | cut -d'/' -f2)
+          version_label=$(echo "${LABEL_NAME}" | cut -d'/' -f2)
           echo "Bumping version to $version_label"
 
           npm version $version_label -m "chore(release): bump version to %s [skip ci]"
-          # git push origin HEAD:${{ github.head_ref }} --follow-tags
           git push origin HEAD:"${HEAD_REF}" --follow-tags"
         env:
+          LABEL_NAME: ${{ github.event.label.name }}
           HEAD_REF: ${{ github.head_ref }}
 
   publish-and-release:
@@ -141,7 +141,6 @@ jobs:
         run: |
           set -xeu
 
-          # gh auth setup-git && gh release create ${{ steps.get_tag.outputs.tag }} --notes "New release ${{ steps.get_tag.outputs.tag }}"
           gh release create ${{ steps.get_tag.outputs.tag }} --title ${{ steps.get_tag.outputs.tag }} --generate-notes
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
