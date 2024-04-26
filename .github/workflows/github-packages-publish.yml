@@ -80,7 +80,7 @@ jobs:
           echo "Bumping version to $version_label"
 
           npm version $version_label -m "chore(release): bump version to %s [skip ci]"
-          git push origin HEAD:"${HEAD_REF}" --follow-tags"
+          git push origin HEAD:"${HEAD_REF}" --follow-tags
         env:
           LABEL_NAME: ${{ github.event.label.name }}
           HEAD_REF: ${{ github.head_ref }}
