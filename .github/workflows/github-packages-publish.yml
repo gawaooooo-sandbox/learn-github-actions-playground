@@ -54,7 +54,7 @@ jobs:
   #       run: npm test
 
   auto-version:
-    if: contains(join(github.event.pull_request.labels.*.name), 'release/')
+    if: github.event.action == 'labeled' && contains(join(github.event.pull_request.labels.*.name), 'release/')
     # needs: [lint, test]
     runs-on: ubuntu-22.04
     timeout-minutes: 5
