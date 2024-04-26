@@ -46,6 +46,7 @@ jobs:
   #       run: npm test
 
   auto-version:
+    if: contains(join(github.event.pull_request.labels.*.name), 'release/')
     # if: contains(github.event.pull_request.labels.*.name, 'release/')
     # needs: [lint, test]
     runs-on: ubuntu-22.04
