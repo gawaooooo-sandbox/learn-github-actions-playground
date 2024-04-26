@@ -17,6 +17,14 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  merged:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 1
+    steps:
+      - name: Check if PR is merged
+        run: |
+          echo "PR merged: ${{ github.event.pull_request.merged }}"
+
   lint:
     if: github.event_name == 'pull_request' && github.event.action != 'labeled' && github.event.action != 'closed'
     uses: gawaooooo-sandbox/learn-github-actions-reusable-workflows/.github/workflows/lint.yml@v3
@@ -61,6 +69,7 @@ jobs:
         uses: gawaooooo-sandbox/learn-github-actions-custom/composite/node-setup-and-dependencies@v3
         with:
           checkout-ref: ${{ github.head_ref}}
+
       - name: Configure Git
         run: |
           git config --global user.name "github-actions[bot]"
@@ -73,7 +82,7 @@ jobs:
           version_label="$(echo "${LABEL_NAME}" | cut -d'/' -f2)"
           echo "Bumping version to $version_label"
 
-          npm version "$version_label" -m "chore(release): bump version to %s [skip ci]"
+          npm version "$version_label" -m "chore(release): bump version to %s"
           git push origin HEAD:"${HEAD_REF}" --follow-tags
         env:
           LABEL_NAME: ${{ github.event.label.name }}
@@ -81,7 +90,6 @@ jobs:
 
   publish-and-release:
     if: github.event.pull_request.merged == true || github.event_name == 'workflow_dispatch'
-    # needs: [lint, test]
     runs-on: ubuntu-22.04
     timeout-minutes: 5
     permissions:
