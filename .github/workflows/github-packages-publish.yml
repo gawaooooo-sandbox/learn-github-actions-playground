@@ -134,4 +134,3 @@ jobs:
           gh release create ${{ steps.get_tag.outputs.tag }} --title ${{ steps.get_tag.outputs.tag }} --generate-notes
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
