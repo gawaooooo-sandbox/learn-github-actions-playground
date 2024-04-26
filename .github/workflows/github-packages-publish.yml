@@ -98,7 +98,11 @@ jobs:
           set -xeu
 
           if [ "${{ github.event_name }}" == "workflow_dispatch" ] && [ -n "${VERSION_TAG}" ]; then
+            echo "Using custom version tag: ${VERSION_TAG}"
             echo "tag=${VERSION_TAG}" >> "$GITHUB_OUTPUT"
+
+            # npmのバージョンをカスタムタグに更新するが、Gitのタグは生成しない
+            npm version "${VERSION_TAG}" --no-git-tag-version
           else
             git fetch --tags
             latest_tag=$(git describe --tags "$(git rev-list --tags --max-count=1)")
