@@ -92,7 +92,7 @@ jobs:
         uses: gawaooooo-sandbox/learn-github-actions-custom/composite/node-setup-and-dependencies@v3
         with:
           npm-registry-url: https://npm.pkg.github.com
-          npm-scope: '@{{ github.repository_owner }}'
+          npm-scope: '@${{ github.repository_owner }}'
 
       # - name: Checkout code
       #   uses: actions/checkout@v4
