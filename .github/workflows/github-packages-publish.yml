@@ -46,50 +46,37 @@ jobs:
   #       run: npm test
 
   auto-version:
-    if: contains(github.event.pull_request.labels.*.name, 'release/')
+    # if: contains(github.event.pull_request.labels.*.name, 'release/')
     # needs: [lint, test]
     runs-on: ubuntu-22.04
     timeout-minutes: 5
     permissions:
       contents: write
     steps:
-      - name: Setup Node.js and Install dependencies
-        uses: gawaooooo-sandbox/learn-github-actions-custom/composite/node-setup-and-dependencies@v3
-        with:
-          checkout-ref: ${{ github.head_ref}}
-
-      # - name: Checkout code
-      #   uses: actions/checkout@v2
-      #   with:
-      #     ref: ${{ github.event.pull_request.head.ref }}
-      #     token: ${{ secrets.GITHUB_TOKEN }}
-      #     fetch-depth: 0
-
-      # - name: Setup Node.js
-      #   uses: actions/setup-node@v4
-      #   with:
-      #     node-version: '14'
-
-      # - name: Install dependencies
-      #   run: npm install
-
-      - name: Configure Git
+      - name: List labels
         run: |
-          git config --global user.name "github-actions[bot]"
-          git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          echo "Labels: ${{ toJSON(github.event.pull_request.labels) }}"
+      # - name: Setup Node.js and Install dependencies
+      #   uses: gawaooooo-sandbox/learn-github-actions-custom/composite/node-setup-and-dependencies@v3
+      #   with:
+      #     checkout-ref: ${{ github.head_ref}}
+      # - name: Configure Git
+      #   run: |
+      #     git config --global user.name "github-actions[bot]"
+      #     git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
-      - name: Bump version and push tag
-        run: |
-          set -xeu
+      # - name: Bump version and push tag
+      #   run: |
+      #     set -xeu
 
-          version_label="$(echo "${LABEL_NAME}" | cut -d'/' -f2)"
-          echo "Bumping version to $version_label"
+      #     version_label="$(echo "${LABEL_NAME}" | cut -d'/' -f2)"
+      #     echo "Bumping version to $version_label"
 
-          npm version "$version_label" -m "chore(release): bump version to %s [skip ci]"
-          git push origin HEAD:"${HEAD_REF}" --follow-tags
-        env:
-          LABEL_NAME: ${{ github.event.label.name }}
-          HEAD_REF: ${{ github.head_ref }}
+      #     npm version "$version_label" -m "chore(release): bump version to %s [skip ci]"
+      #     git push origin HEAD:"${HEAD_REF}" --follow-tags
+      #   env:
+      #     LABEL_NAME: ${{ github.event.label.name }}
+      #     HEAD_REF: ${{ github.head_ref }}
 
   publish-and-release:
     if: github.event.pull_request.merged == true || github.event_name == 'workflow_dispatch'
