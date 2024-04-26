@@ -1,6 +1,5 @@
 {
   "name": "@gawaooooo-sandbox/nuxt-app",
-  "private": true,
   "type": "module",
   "scripts": {
     "build": "nuxt build",
@@ -45,5 +44,5 @@
       "path": "./node_modules/cz-conventional-changelog"
     }
   },
-  "version": "0.0.2"
+  "version": "0.0.0"
 }
