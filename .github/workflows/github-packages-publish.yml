@@ -192,6 +192,8 @@ jobs:
 
           npm publish --tag ${{ inputs.publishTag }}
           git push --follow-tags
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Create GitHub Release
         run: |
