@@ -8,6 +8,7 @@ console.log('---- testB');
 const router = useRouter();
 
 const nav = [{ label: 'Home', to: '/' }];
+console.log(nav);
 
 // runtime config
 const runtimeConfig = useRuntimeConfig();
