@@ -83,8 +83,8 @@ jobs:
       - name: Publising Release Package
         uses: gawaooooo-sandbox/learn-github-actions-custom/composite/npm-release-publish@feature/npm-release-publish
         with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
           pr-number: ${{ github.event.pull_request.number }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
 
   publish-dev-package:
     # 手動ディスパッチトリガーは、開発用のブランチから開発用のパッケージを公開するときのみ使用できます。
