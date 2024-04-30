@@ -66,6 +66,7 @@ jobs:
       - name: Npm Auto Bump
         uses: gawaooooo-sandbox/learn-github-actions-custom/composite/npm-auto-bump@feature/npm-auto-bump
         with:
+          checkout-ref: ${{ github.head_ref }}
           label-name: ${{ github.event.label.name }}
         permissions:
           contents: write
