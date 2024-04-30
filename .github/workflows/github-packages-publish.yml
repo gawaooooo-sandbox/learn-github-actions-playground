@@ -105,21 +105,39 @@ jobs:
           LABEL_NAME: ${{ github.event.label.name }}
 
   publish-release-package:
-    # if: |
-    #   github.event.pull_request.merged == true &&
-    #   contains(github.event.pull_request.labels.*.name, 'release/')
     if: github.event.pull_request.merged == true
     runs-on: ubuntu-22.04
     timeout-minutes: 5
     permissions:
       contents: write
       packages: write
+      pull-requests: read
     steps:
-      - name: Debug output
+      - name: Check PR labels
+        id: labels
         run: |
-          echo "PR Labels: ${{ toJson(github.event.pull_request.labels) }}"
+          set -xeu
+          echo "PR Labels: ${{ toJSON(github.event.pull_request.labels) }}"
+          json=$(gh pr view "$PR_NUMBER" --json labels | jq -c '.labels|map(.name)')
+          echo "Fetched labels: $json"
+
+          # Check if any label starts with 'release/'
+          contains_release=$(echo "$json" | jq 'any(startswith("release/"))')
+          echo "Contains 'release/' label: $contains_release"
+          # Set output for later steps
+          echo "contains_release=$contains_release" >> "$GITHUB_ENV"
+
+          # If no 'release/' label found, exit job
+          if [ "$contains_release" = "false" ]; then
+            echo "No 'release/' label found, exiting job."
+            exit 78 # Exiting with specific status
+          fi
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
 
       - name: Setup Node.js and Install dependencies
+        if: env.contains_release == 'true'
         uses: gawaooooo-sandbox/learn-github-actions-custom/composite/node-setup-and-dependencies@v3
         with:
           npm-registry-url: https://npm.pkg.github.com
