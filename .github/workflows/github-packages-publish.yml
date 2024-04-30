@@ -187,3 +187,4 @@ jobs:
         with:
           version-type: ${{ inputs.versionType }}
           publish-tag: ${{ inputs.publishTag }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
