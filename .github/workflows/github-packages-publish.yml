@@ -100,7 +100,9 @@ jobs:
           LABEL_NAME: ${{ github.event.label.name }}
 
   publish-release-package:
-    if: github.event.pull_request.merged == true
+    if: |
+      github.event.pull_request.merged == true &&
+      contains(github.event.pull_request.labels.*.name, 'release/')
     runs-on: ubuntu-22.04
     timeout-minutes: 5
     permissions:
