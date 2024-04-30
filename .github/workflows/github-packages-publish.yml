@@ -35,7 +35,7 @@ on:
           Publish tag for npm (choose from: latest, alpha, beta, next)
         type: choice
         required: false
-        default: latest
+        default: alpha
         options:
           - latest
           - alpha
