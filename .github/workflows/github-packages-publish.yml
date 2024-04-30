@@ -37,7 +37,7 @@ jobs:
     uses: ./.github/workflows/test.yml
 
   auto-version:
-    if: github.event.action == 'labeled' && contains(join(github.event.pull_request.labels.*.name), 'release/')
+    if: github.event.action == 'labeled' && startsWith(github.event.label.name, 'release/')
     runs-on: ubuntu-22.04
     timeout-minutes: 5
     permissions:
@@ -61,14 +61,16 @@ jobs:
         run: |
           set -xeu
 
+          # Update version in package.json and package-lock.json without creating a git tag
           version_label="$(echo "${LABEL_NAME}" | cut -d'/' -f2)"
           echo "Bumping version to $version_label"
+          npm version "$version_label" --no-git-tag-version
 
-          npm version "$version_label" -m "chore(release): bump version to %s"
-          git push origin HEAD:"${HEAD_REF}" --follow-tags
+          # Manually commit the updated package files because npm version --no-git-tag-version does not auto-commit
+          git add package.json package-lock.json
+          git commit -m "chore(release): bump version to $version_label"
         env:
           LABEL_NAME: ${{ github.event.label.name }}
-          HEAD_REF: ${{ github.head_ref }}
 
   publish-and-release:
     if: github.event.pull_request.merged == true || github.event_name == 'workflow_dispatch'
