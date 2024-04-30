@@ -65,9 +65,15 @@ jobs:
     permissions:
       contents: write
     steps:
-      - name: List labels
+      - name: Check label validity
         run: |
           echo "Labels: ${{ toJSON(github.event.pull_request.labels) }}"
+
+          label="${{ github.event.label.name }}"
+          if [[ ! "$label" =~ ^release/(patch|minor|major)$ ]]; then
+            echo "::error::Invalid version label '$label'. Valid labels are 'release/patch', 'release/minor', and 'release/major'."
+            exit 1
+          fi
 
       - name: Setup Node.js and Install dependencies
         uses: gawaooooo-sandbox/learn-github-actions-custom/composite/node-setup-and-dependencies@v3
@@ -85,11 +91,6 @@ jobs:
 
           # Update version in package.json and package-lock.json without creating a git tag
           version_label="$(echo "${LABEL_NAME}" | cut -d'/' -f2)"
-          # Check if the version label is one of the expected types
-          if [[ ! "$version_label" =~ ^(patch|minor|major)$ ]]; then
-            echo "::error::Invalid version label '$version_label'. Valid labels are 'release/patch', 'release/minor', and 'release/major'. Please use one of these labels to trigger version updates."
-            exit 1
-          fi
           echo "Bumping version to $version_label"
           npm version "$version_label" --no-git-tag-version
 
