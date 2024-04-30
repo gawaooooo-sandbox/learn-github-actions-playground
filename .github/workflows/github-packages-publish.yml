@@ -183,7 +183,7 @@ jobs:
       packages: write
     steps:
       - name: Publising Development Package
-        uses: gawaooooo-sandbox/learn-github-actions-custom/composite/npm-dev-publish@feature/npm-publish-dev
+        uses: gawaooooo-sandbox/learn-github-actions-custom/composite/npm-dev-publish@v3
         with:
           version-type: ${{ inputs.versionType }}
           publish-tag: ${{ inputs.publishTag }}
