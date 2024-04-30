@@ -182,48 +182,54 @@ jobs:
       contents: write
       packages: write
     steps:
-      - name: Inputs summary
-        uses: gawaooooo-sandbox/learn-github-actions-custom/composite/inputs-summary@v3
+      - name: Publising Development Package
+        uses: gawaooooo-sandbox/learn-github-actions-custom/composite/npm-dev-publish@feature/npm-publish-dev
         with:
-          workflow-inputs: ${{ toJSON(inputs) }}
+          version-type: ${{ inputs.versionType }}
+          publish-tag: ${{ inputs.publishTag }}
+    # steps:
+    #   - name: Inputs summary
+    #     uses: gawaooooo-sandbox/learn-github-actions-custom/composite/inputs-summary@v3
+    #     with:
+    #       workflow-inputs: ${{ toJSON(inputs) }}
 
-      - name: Setup Node.js and Install dependencies
-        uses: gawaooooo-sandbox/learn-github-actions-custom/composite/node-setup-and-dependencies@v3
-        with:
-          npm-registry-url: https://npm.pkg.github.com
-          npm-scope: '@${{ github.repository_owner }}'
+    #   - name: Setup Node.js and Install dependencies
+    #     uses: gawaooooo-sandbox/learn-github-actions-custom/composite/node-setup-and-dependencies@v3
+    #     with:
+    #       npm-registry-url: https://npm.pkg.github.com
+    #       npm-scope: '@${{ github.repository_owner }}'
 
-      - name: Configure Git
-        run: |
-          git config --global user.name "github-actions[bot]"
-          git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+    #   - name: Configure Git
+    #     run: |
+    #       git config --global user.name "github-actions[bot]"
+    #       git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
-      - name: Update npm version and publish
-        id: new_version
-        run: |
-          set -xeu
+    #   - name: Update npm version and publish
+    #     id: new_version
+    #     run: |
+    #       set -xeu
 
-          version=$(npm version "${{ inputs.versionType }}" -m "chore(release): bump version to %s")
-          echo "New version is $version"
-          echo "version=${version}" >> "$GITHUB_OUTPUT"
+    #       version=$(npm version "${{ inputs.versionType }}" -m "chore(release): bump version to %s")
+    #       echo "New version is $version"
+    #       echo "version=${version}" >> "$GITHUB_OUTPUT"
 
-          npm publish --tag ${{ inputs.publishTag }}
-          git push --follow-tags
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    #       npm publish --tag ${{ inputs.publishTag }}
+    #       git push --follow-tags
+    #     env:
+    #       NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Create GitHub Release
-        run: |
-          set -xeu
-          gh release create ${{ steps.new_version.outputs.version }} --title ${{ steps.new_version.outputs.version }} --generate-notes
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    #   - name: Create GitHub Release
+    #     run: |
+    #       set -xeu
+    #       gh release create ${{ steps.new_version.outputs.version }} --title ${{ steps.new_version.outputs.version }} --generate-notes
+    #     env:
+    #       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Append release success to job summary
-        if: success() # Only append to the job summary if the job was successful
-        run: |
-          {
-            echo "## Release Details ✨"
-            echo "Release for version ${{ steps.new_version.outputs.version }} was successfully created 🎉."
-            echo "You can view the release [here](https://github.com/${{ github.repository }}/releases/tag/${{ steps.new_version.outputs.version }})."
-          } >> "$GITHUB_STEP_SUMMARY"
+    #   - name: Append release success to job summary
+    #     if: success() # Only append to the job summary if the job was successful
+    #     run: |
+    #       {
+    #         echo "## Release Details ✨"
+    #         echo "Release for version ${{ steps.new_version.outputs.version }} was successfully created 🎉."
+    #         echo "You can view the release [here](https://github.com/${{ github.repository }}/releases/tag/${{ steps.new_version.outputs.version }})."
+    #       } >> "$GITHUB_STEP_SUMMARY"
