@@ -21,7 +21,7 @@ on:
           Type of version to publish (e.g., patch, minor, major, prepatch, preminor, premajor)
         type: choice
         required: false
-        default: patch
+        default: prepatch
         options:
           - patch
           - minor
