@@ -1,5 +1,5 @@
-name: GitHub Packages Publish
-run-name: ${{ github.workflow }} for ${{ github.ref_name }} [${{ github.event_name }} ${{github.event.action}}] ${{ inputs.versionTag }} [${{ github.sha }}]
+name: GitHub Packages CI/CD
+run-name: ${{ github.workflow }} for ${{ github.ref_name }} [${{ github.event_name }} ${{github.event.action}}] ${{ inputs.versionType }} ${{ inputs.publishTag }} [${{ github.sha }}]
 
 on:
   pull_request:
@@ -16,44 +16,64 @@ on:
 
   workflow_dispatch:
     inputs:
-      versionTag:
-        description: 'Tag version to publish'
-        required: true
+      versionType:
+        description: |
+          Type of version to publish (e.g., patch, minor, major, prepatch, preminor, premajor)
+        type: choice
+        required: false
+        default: prepatch
+        options:
+          - patch
+          - minor
+          - major
+          - prepatch
+          - preminor
+          - premajor
+
+      publishTag:
+        description: |
+          Publish tag for npm (choose from: latest, alpha, beta, next)
+        type: choice
+        required: false
+        default: alpha
+        options:
+          - latest
+          - alpha
+          - beta
+          - next
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
-  merged:
-    runs-on: ubuntu-22.04
-    timeout-minutes: 1
-    steps:
-      - name: Check if PR is merged
-        run: |
-          echo "PR merged: ${{ github.event.pull_request.merged }}"
-
   lint:
-    if: github.event_name == 'pull_request' && github.event.action != 'labeled' && github.event.action != 'closed'
+    if: github.event_name == 'pull_request' && (github.event.action == 'opened' || github.event.action == 'synchronize' || github.event.action == 'reopened')
     uses: gawaooooo-sandbox/learn-github-actions-reusable-workflows/.github/workflows/lint.yml@v3
     permissions:
       contents: read
       packages: read
 
   test:
-    if: github.event_name == 'pull_request' && github.event.action != 'labeled' && github.event.action != 'closed'
+    if: github.event_name == 'pull_request' && (github.event.action == 'opened' || github.event.action == 'synchronize' || github.event.action == 'reopened')
     uses: ./.github/workflows/test.yml
 
   auto-version:
-    if: github.event.action == 'labeled' && contains(join(github.event.pull_request.labels.*.name), 'release/')
+    if: github.event.action == 'labeled' && startsWith(github.event.label.name, 'release/')
     runs-on: ubuntu-22.04
     timeout-minutes: 5
     permissions:
       contents: write
     steps:
-      - name: List labels
+      - name: Check label validity
         run: |
           echo "Labels: ${{ toJSON(github.event.pull_request.labels) }}"
+
+          label="${{ github.event.label.name }}"
+          if [[ ! "$label" =~ ^release/(patch|minor|major)$ ]]; then
+            echo "::error::Invalid version label '$label'. Valid labels are 'release/patch', 'release/minor', and 'release/major'."
+            exit 1
+          fi
 
       - name: Setup Node.js and Install dependencies
         uses: gawaooooo-sandbox/learn-github-actions-custom/composite/node-setup-and-dependencies@v3
@@ -69,17 +89,25 @@ jobs:
         run: |
           set -xeu
 
+          # Update version in package.json and package-lock.json without creating a git tag
           version_label="$(echo "${LABEL_NAME}" | cut -d'/' -f2)"
           echo "Bumping version to $version_label"
+          new_version=$(npm version "$version_label" --no-git-tag-version)
+          echo "New version is $new_version"
 
-          npm version "$version_label" -m "chore(release): bump version to %s"
-          git push origin HEAD:"${HEAD_REF}" --follow-tags
+          # Manually commit the updated package files because npm version --no-git-tag-version does not auto-commit
+          git add package.json package-lock.json
+          git commit -m "chore(release): bump version to $new_version"
+
+          # Push the changes to the remote repository
+          git push
         env:
           LABEL_NAME: ${{ github.event.label.name }}
-          HEAD_REF: ${{ github.head_ref }}
 
-  publish-and-release:
-    if: github.event.pull_request.merged == true || github.event_name == 'workflow_dispatch'
+  publish-release-package:
+    if: |
+      github.event.pull_request.merged == true &&
+      contains(github.event.pull_request.labels.*.name, 'release/')
     runs-on: ubuntu-22.04
     timeout-minutes: 5
     permissions:
@@ -92,24 +120,36 @@ jobs:
           npm-registry-url: https://npm.pkg.github.com
           npm-scope: '@${{ github.repository_owner }}'
 
-      - name: Get latest tag (or use workflow_dispatch input if available)
-        id: get_tag
+      - name: Configure Git
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: Extract and Tag Version
+        id: tag_version
         run: |
           set -xeu
 
-          if [ "${{ github.event_name }}" == "workflow_dispatch" ] && [ -n "${VERSION_TAG}" ]; then
-            echo "tag=${VERSION_TAG}" >> "$GITHUB_OUTPUT"
-          else
-            git fetch --tags
-            latest_tag=$(git describe --tags "$(git rev-list --tags --max-count=1)")
-            if [ -z "$latest_tag" ]; then
-              echo "Error: No tags found."
-              exit 1
-            fi
-            echo "tag=${latest_tag}" >> "$GITHUB_OUTPUT"
+          # Fetch tags from the remote to make sure we have the latest tags information
+          git fetch --tags
+
+          # Extract the version number from package.json using jq
+          version=$(jq -r '.version' package.json)
+          echo "Extracted version: $version"
+
+          # Check if the tag already exists
+          if git rev-parse "v${version}" >/dev/null 2>&1; then
+            echo "::error::Tag 'v${version}' already exists. Please update the version number or delete the existing tag."
+            exit 1
           fi
-        env:
-          VERSION_TAG: ${{ inputs.versionTag }}
+
+          # Create a new Git tag with the extracted version number
+          git tag "v${version}"
+
+          # Push the new tag to the repository
+          git push origin "v${version}"
+
+          echo "tag=v${version}" >> "$GITHUB_OUTPUT"
 
       - name: Publish to GitHub Packages
         run: |
@@ -121,6 +161,71 @@ jobs:
       - name: Create GitHub Release
         run: |
           set -xeu
-          gh release create ${{ steps.get_tag.outputs.tag }} --title ${{ steps.get_tag.outputs.tag }} --generate-notes
+          gh release create ${{ steps.tag_version.outputs.tag }} --title ${{ steps.tag_version.outputs.tag }} --generate-notes
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Append release success to job summary
+        if: success() # Only append to the job summary if the job was successful
+        run: |
+          {
+            echo "## Release Details ✨"
+            echo "Release for version ${{ steps.tag_version.outputs.tag }} was successfully created 🎉."
+            echo "You can view the release [here](https://github.com/${{ github.repository }}/releases/tag/${{ steps.tag_version.outputs.tag }})."
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  publish-dev-package:
+    # 手動ディスパッチトリガーは、開発用のブランチから開発用のパッケージを公開するときのみ使用できます。
+    # 正式なリリースは、プルリクエストの自動マージによる公開で行います。
+    if: github.event_name == 'workflow_dispatch' && github.ref != 'refs/heads/main'
+    runs-on: ubuntu-22.04
+    timeout-minutes: 5
+    permissions:
+      contents: write
+      packages: write
+    steps:
+      - name: Inputs summary
+        uses: gawaooooo-sandbox/learn-github-actions-custom/composite/inputs-summary@v3
+        with:
+          workflow-inputs: ${{ toJSON(inputs) }}
+
+      - name: Setup Node.js and Install dependencies
+        uses: gawaooooo-sandbox/learn-github-actions-custom/composite/node-setup-and-dependencies@v3
+        with:
+          npm-registry-url: https://npm.pkg.github.com
+          npm-scope: '@${{ github.repository_owner }}'
+
+      - name: Configure Git
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: Update npm version and publish
+        id: new_version
+        run: |
+          set -xeu
+
+          version=$(npm version "${{ inputs.versionType }}" -m "chore(release): bump version to %s")
+          echo "New version is $version"
+          echo "version=${version}" >> "$GITHUB_OUTPUT"
+
+          npm publish --tag ${{ inputs.publishTag }}
+          git push --follow-tags
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create GitHub Release
+        run: |
+          set -xeu
+          gh release create ${{ steps.new_version.outputs.version }} --title ${{ steps.new_version.outputs.version }} --generate-notes
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Append release success to job summary
+        if: success() # Only append to the job summary if the job was successful
+        run: |
+          {
+            echo "## Release Details ✨"
+            echo "Release for version ${{ steps.new_version.outputs.version }} was successfully created 🎉."
+            echo "You can view the release [here](https://github.com/${{ github.repository }}/releases/tag/${{ steps.new_version.outputs.version }})."
+          } >> "$GITHUB_STEP_SUMMARY"
