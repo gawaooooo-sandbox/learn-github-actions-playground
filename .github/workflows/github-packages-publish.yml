@@ -80,97 +80,11 @@ jobs:
       packages: write
       pull-requests: read
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Check PR labels
-        id: labels
-        run: |
-          set -xeu
-
-          json=$(gh pr view "$PR_NUMBER" --json labels | jq -c '.labels|map(.name)')
-          echo "Fetched labels: $json"
-
-          # Check if any label starts with 'release/'
-          contains_release=$(echo "$json" | jq 'any(startswith("release/"))')
-          echo "Contains 'release/' label: $contains_release"
-          # Set output for later steps
-          echo "contains_release=$contains_release" >> "$GITHUB_ENV"
-
-          # If no 'release/' label found, exit job with success
-          if [ "$contains_release" = "false" ]; then
-            echo "No 'release/' label found, skipping job."
-            exit 0 # Exiting with success status
-          fi
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          PR_NUMBER: ${{ github.event.pull_request.number }}
-
-      - name: Setup Node.js and Install dependencies
-        if: env.contains_release == 'true'
-        uses: gawaooooo-sandbox/learn-github-actions-custom/composite/node-setup-and-dependencies@v3
+      - name: Publising Release Package
+        uses: gawaooooo-sandbox/learn-github-actions-custom/composite/npm-release-publish@feature/npm-release-publish
         with:
-          skip-checkout: true
-          npm-registry-url: https://npm.pkg.github.com
-          npm-scope: '@${{ github.repository_owner }}'
-
-      - name: Configure Git
-        if: env.contains_release == 'true'
-        run: |
-          git config --global user.name "github-actions[bot]"
-          git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
-
-      - name: Extract and Tag Version
-        if: env.contains_release == 'true'
-        id: tag_version
-        run: |
-          set -xeu
-
-          # Fetch tags from the remote to make sure we have the latest tags information
-          git fetch --tags
-
-          # Extract the version number from package.json using jq
-          version=$(jq -r '.version' package.json)
-          echo "Extracted version: $version"
-
-          # Check if the tag already exists
-          if git rev-parse "v${version}" >/dev/null 2>&1; then
-            echo "::error::Tag 'v${version}' already exists. Please update the version number or delete the existing tag."
-            exit 1
-          fi
-
-          # Create a new Git tag with the extracted version number
-          git tag "v${version}"
-
-          # Push the new tag to the repository
-          git push origin "v${version}"
-
-          echo "tag=v${version}" >> "$GITHUB_OUTPUT"
-
-      - name: Publish to GitHub Packages
-        if: env.contains_release == 'true'
-        run: |
-          set -xeu
-          npm publish
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Create GitHub Release
-        if: env.contains_release == 'true'
-        run: |
-          set -xeu
-          gh release create ${{ steps.tag_version.outputs.tag }} --title ${{ steps.tag_version.outputs.tag }} --generate-notes
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Append release success to job summary
-        if: success() && env.contains_release == 'true' # Only append to the job summary if the job was successful and 'release/' label is present
-        run: |
-          {
-            echo "## Release Details ✨"
-            echo "Release for version ${{ steps.tag_version.outputs.tag }} was successfully created 🎉."
-            echo "You can view the release [here](https://github.com/${{ github.repository }}/releases/tag/${{ steps.tag_version.outputs.tag }})."
-          } >> "$GITHUB_STEP_SUMMARY"
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          pr-number: ${{ github.event.pull_request.number }}
 
   publish-dev-package:
     # 手動ディスパッチトリガーは、開発用のブランチから開発用のパッケージを公開するときのみ使用できます。
@@ -183,7 +97,7 @@ jobs:
       packages: write
     steps:
       - name: Publising Development Package
-        uses: gawaooooo-sandbox/learn-github-actions-custom/composite/npm-dev-publish@feature/npm-publish-dev
+        uses: gawaooooo-sandbox/learn-github-actions-custom/composite/npm-dev-publish@v3
         with:
           version-type: ${{ inputs.versionType }}
           publish-tag: ${{ inputs.publishTag }}
