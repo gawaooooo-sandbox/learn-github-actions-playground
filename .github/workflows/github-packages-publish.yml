@@ -178,7 +178,7 @@ jobs:
       packages: write
     steps:
       - name: Inputs summary
-        uses: gawaooooo-sandbox/learn-github-actions-reusable-workflows/.github/workflows/inputs-summary.yml@v3
+        uses: gawaooooo-sandbox/learn-github-actions-custom/composite/inputs-summary@v3
         with:
           workflow-inputs: ${{ toJSON(inputs) }}
 
