@@ -16,9 +16,31 @@ on:
 
   workflow_dispatch:
     inputs:
-      versionTag:
-        description: 'Tag version to publish'
-        required: true
+      versionType:
+        description: |
+          Type of version to publish (e.g., patch, minor, major, prepatch, preminor, premajor)
+        type: choice
+        required: false
+        default: patch
+        options:
+          - patch
+          - minor
+          - major
+          - prepatch
+          - preminor
+          - premajor
+
+      publishTag:
+        description: |
+          Publish tag for npm (choose from: latest, alpha, beta, next)
+        type: choice
+        required: false
+        default: latest
+        options:
+          - latest
+          - alpha
+          - beta
+          - next
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -136,8 +158,10 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-  publish-and-release:
-    if: github.event.pull_request.merged == true || github.event_name == 'workflow_dispatch'
+  publish-dev-package:
+    # 手動ディスパッチトリガーは、開発用のブランチから開発用のパッケージを公開するときのみ使用できます。
+    # 正式なリリースは、プルリクエストの自動マージによる公開で行います。
+    if: github.event_name == 'workflow_dispatch' && github.ref != 'refs/heads/main'
     runs-on: ubuntu-22.04
     timeout-minutes: 5
     permissions:
@@ -150,39 +174,26 @@ jobs:
           npm-registry-url: https://npm.pkg.github.com
           npm-scope: '@${{ github.repository_owner }}'
 
-      - name: Get latest tag (or use workflow_dispatch input if available)
-        id: get_tag
+      - name: Configure Git
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: Update npm version and publish
+        id: newe_version
         run: |
           set -xeu
 
-          if [ "${{ github.event_name }}" == "workflow_dispatch" ] && [ -n "${VERSION_TAG}" ]; then
-            echo "Using custom version tag: ${VERSION_TAG}"
-            echo "tag=${VERSION_TAG}" >> "$GITHUB_OUTPUT"
+          version=$(npm version "${{ inputs.versionType }}" -m "chore(release): bump version to %s")
+          echo "New version is $version"
+          echo "version=v${version}" >> "$GITHUB_OUTPUT"
 
-            # npmのバージョンをカスタムタグに更新するが、Gitのタグは生成しない
-            npm version "${VERSION_TAG}" --no-git-tag-version
-          else
-            git fetch --tags
-            latest_tag=$(git describe --tags "$(git rev-list --tags --max-count=1)")
-            if [ -z "$latest_tag" ]; then
-              echo "Error: No tags found."
-              exit 1
-            fi
-            echo "tag=${latest_tag}" >> "$GITHUB_OUTPUT"
-          fi
-        env:
-          VERSION_TAG: ${{ inputs.versionTag }}
-
-      - name: Publish to GitHub Packages
-        run: |
-          set -xeu
-          npm publish
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          npm publish --tag ${{ inputs.publishTag }}
+          git push --follow-tags
 
       - name: Create GitHub Release
         run: |
           set -xeu
-          gh release create ${{ steps.get_tag.outputs.tag }} --title ${{ steps.get_tag.outputs.tag }} --generate-notes
+          gh release create ${{ steps.new_version.outputs.version }} --title ${{ steps.new_version.outputs.version }} --generate-notes
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
