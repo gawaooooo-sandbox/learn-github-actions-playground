@@ -1,4 +1,4 @@
-name: GitHub Packages Publish
+name: GitHub Packages CI/CD
 run-name: ${{ github.workflow }} for ${{ github.ref_name }} [${{ github.event_name }} ${{github.event.action}}] ${{ inputs.versionType }} ${{ inputs.publishTag }} [${{ github.sha }}]
 
 on:
