@@ -160,6 +160,14 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Append release success to job summary
+      if: success() # Only append to the job summary if the job was successful
+      run: |
+        echo "## Release Details ✨" >> $GITHUB_STEP_SUMMARY
+        echo "Release for version ${{ steps.tag_version.outputs.tag }} was successfully created 🎉." >> $GITHUB_STEP_SUMMARY
+        echo "You can view the release [here](https://github.com/${{ github.repository }}/releases/tag/${{ steps.tag_version.outputs.tag }})." >> $GITHUB_STEP_SUMMARY
+
+
   publish-dev-package:
     # 手動ディスパッチトリガーは、開発用のブランチから開発用のパッケージを公開するときのみ使用できます。
     # 正式なリリースは、プルリクエストの自動マージによる公開で行います。
@@ -206,3 +214,10 @@ jobs:
           gh release create ${{ steps.new_version.outputs.version }} --title ${{ steps.new_version.outputs.version }} --generate-notes
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Append release success to job summary
+        if: success() # Only append to the job summary if the job was successful
+        run: |
+          echo "## Release Details ✨" >> $GITHUB_STEP_SUMMARY
+          echo "Release for version ${{ steps.new_version.outputs.version }} was successfully created 🎉." >> $GITHUB_STEP_SUMMARY
+          echo "You can view the release [here](https://github.com/${{ github.repository }}/releases/tag/${{ steps.new_version.outputs.version }})." >> $GITHUB_STEP_SUMMARY
