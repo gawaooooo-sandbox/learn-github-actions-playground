@@ -81,7 +81,7 @@ jobs:
       pull-requests: read
     steps:
       - name: Publising Release Package
-        uses: gawaooooo-sandbox/learn-github-actions-custom/composite/npm-release-publish@feature/npm-release-publish
+        uses: gawaooooo-sandbox/learn-github-actions-custom/composite/npm-release-publish@v3
         with:
           pr-number: ${{ github.event.pull_request.number }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
