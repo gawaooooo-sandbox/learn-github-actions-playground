@@ -130,10 +130,10 @@ jobs:
           # Set output for later steps
           echo "contains_release=$contains_release" >> "$GITHUB_ENV"
 
-          # If no 'release/' label found, exit job
+          # If no 'release/' label found, exit job with success
           if [ "$contains_release" = "false" ]; then
-            echo "No 'release/' label found, exiting job."
-            exit 78 # Exiting with specific status
+            echo "No 'release/' label found, skipping job."
+            exit 0 # Exiting with success status
           fi
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
