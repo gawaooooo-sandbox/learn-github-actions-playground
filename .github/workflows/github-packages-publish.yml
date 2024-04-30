@@ -63,6 +63,11 @@ jobs:
 
           # Update version in package.json and package-lock.json without creating a git tag
           version_label="$(echo "${LABEL_NAME}" | cut -d'/' -f2)"
+          # Check if the version label is one of the expected types
+          if [[ ! "$version_label" =~ ^(patch|minor|major|prepatch|preminor|premajor)$ ]]; then
+            echo "Error: Invalid version label '$version_label'."
+            exit 1
+          fi
           echo "Bumping version to $version_label"
           npm version "$version_label" --no-git-tag-version
 
