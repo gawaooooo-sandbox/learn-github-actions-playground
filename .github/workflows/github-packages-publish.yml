@@ -105,15 +105,20 @@ jobs:
           LABEL_NAME: ${{ github.event.label.name }}
 
   publish-release-package:
-    if: |
-      github.event.pull_request.merged == true &&
-      contains(github.event.pull_request.labels.*.name, 'release/')
+    # if: |
+    #   github.event.pull_request.merged == true &&
+    #   contains(github.event.pull_request.labels.*.name, 'release/')
+    if: github.event.pull_request.merged == true
     runs-on: ubuntu-22.04
     timeout-minutes: 5
     permissions:
       contents: write
       packages: write
     steps:
+      - name: Debug output
+        run: |
+          echo "PR Labels: ${{ toJson(github.event.pull_request.labels) }}"
+
       - name: Setup Node.js and Install dependencies
         uses: gawaooooo-sandbox/learn-github-actions-custom/composite/node-setup-and-dependencies@v3
         with:
