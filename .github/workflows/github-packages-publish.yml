@@ -170,6 +170,11 @@ jobs:
       contents: write
       packages: write
     steps:
+      - name: Inputs summary
+        uses: gawaooooo-sandbox/learn-github-actions-reusable-workflows/.github/workflows/inputs-summary.yml@v3
+        with:
+          workflow-inputs: ${{ toJSON(inputs) }}
+
       - name: Setup Node.js and Install dependencies
         uses: gawaooooo-sandbox/learn-github-actions-custom/composite/node-setup-and-dependencies@v3
         with:
