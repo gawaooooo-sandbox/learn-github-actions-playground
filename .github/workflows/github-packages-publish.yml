@@ -26,14 +26,14 @@ concurrency:
 
 jobs:
   lint:
-    if: github.event_name == 'pull_request' && github.event.action != 'labeled' && github.event.action != 'closed'
+    if: github.event_name == 'pull_request' && (github.event.action == 'opened' || github.event.action == 'synchronize' || github.event.action == 'reopened')
     uses: gawaooooo-sandbox/learn-github-actions-reusable-workflows/.github/workflows/lint.yml@v3
     permissions:
       contents: read
       packages: read
 
   test:
-    if: github.event_name == 'pull_request' && github.event.action != 'labeled' && github.event.action != 'closed'
+    if: github.event_name == 'pull_request' && (github.event.action == 'opened' || github.event.action == 'synchronize' || github.event.action == 'reopened')
     uses: ./.github/workflows/test.yml
 
   auto-version:
