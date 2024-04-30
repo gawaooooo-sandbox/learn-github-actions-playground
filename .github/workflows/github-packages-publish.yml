@@ -131,6 +131,7 @@ jobs:
           if [ "$contains_release" = "false" ]; then
             echo "No 'release/' label found, exiting job."
             exit 78 # Exiting with specific status
+          fi
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
