@@ -62,11 +62,13 @@ jobs:
     if: github.event.action == 'labeled' && startsWith(github.event.label.name, 'release/')
     runs-on: ubuntu-22.04
     timeout-minutes: 5
-    uses: gawaooooo-sandbox/learn-github-actions-custom/composite/npm-auto-bump@feature/npm-auto-bump
-    with:
-      label-name: ${{ github.event.label.name }}
-    permissions:
-      contents: write
+    steps:
+      - name: Npm Auto Bump
+        uses: gawaooooo-sandbox/learn-github-actions-custom/composite/npm-auto-bump@feature/npm-auto-bump
+        with:
+          label-name: ${{ github.event.label.name }}
+        permissions:
+          contents: write
     # steps:
     #   - name: Check label validity
     #     run: |
