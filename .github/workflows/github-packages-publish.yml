@@ -77,6 +77,56 @@ jobs:
         env:
           LABEL_NAME: ${{ github.event.label.name }}
 
+  pr-merge-publish:
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-22.04
+    timeout-minutes: 5
+    permissions:
+      contents: write
+      packages: write
+    steps:
+      - name: Setup Node.js and Install dependencies
+        uses: gawaooooo-sandbox/learn-github-actions-custom/composite/node-setup-and-dependencies@v3
+        with:
+          npm-registry-url: https://npm.pkg.github.com
+          npm-scope: '@${{ github.repository_owner }}'
+
+      - name: Configure Git
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: Extract and Tag Version
+        id: tag_version
+        run: |
+          set -xeu
+
+          # Extract the version number from package.json using jq
+          version=$(jq -r '.version' package.json)
+          echo "Extracted version: $version"
+
+          # Create a new Git tag with the extracted version number
+          git tag "v${version}"
+
+          # Push the new tag to the repository
+          git push origin "v${version}"
+
+          echo "tag=v${version}" >> "$GITHUB_OUTPUT"
+
+      - name: Publish to GitHub Packages
+        run: |
+          set -xeu
+          npm publish
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create GitHub Release
+        run: |
+          set -xeu
+          gh release create ${{ steps.tag_version.outputs.tag }} --title ${{ steps.tag_version.outputs.tag }} --generate-notes
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
   publish-and-release:
     if: github.event.pull_request.merged == true || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-22.04
