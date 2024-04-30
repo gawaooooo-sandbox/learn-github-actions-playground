@@ -87,7 +87,7 @@ jobs:
           version_label="$(echo "${LABEL_NAME}" | cut -d'/' -f2)"
           # Check if the version label is one of the expected types
           if [[ ! "$version_label" =~ ^(patch|minor|major)$ ]]; then
-            echo "Error: Invalid version label '$version_label'. Valid labels are 'release/patch', 'release/minor', and 'release/major'. Please use one of these labels to trigger version updates."
+            echo "::error::Invalid version label '$version_label'. Valid labels are 'release/patch', 'release/minor', and 'release/major'. Please use one of these labels to trigger version updates."
             exit 1
           fi
           echo "Bumping version to $version_label"
