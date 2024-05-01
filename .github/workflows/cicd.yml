@@ -76,7 +76,7 @@ jobs:
   merge-and-deploy:
     if: github.event_name == 'pull_request'
     needs: [lint, test, setup-deployment-config]
-    uses: gawaooooo-sandbox/learn-github-actions-reusable-workflows/.github/workflows/deploy.yml@v3
+    uses: gawaooooo-sandbox/learn-github-actions-reusable-workflows/.github/workflows/deploy.yml@v4
     with:
       environment: alpha
       enable-auto-merge: true
@@ -86,7 +86,6 @@ jobs:
       enable-aws-deploy: false
     secrets:
       node-auth-token: ${{ secrets.GITHUB_TOKEN }}
-      github-token: ${{ secrets.GITHUB_TOKEN }}
       aws-role-arn: ${{ secrets.AWS_ROLE_ARN }}
     permissions:
       contents: write
@@ -96,7 +95,7 @@ jobs:
   manual-deploy:
     if: github.event_name == 'workflow_dispatch'
     needs: [setup-deployment-config]
-    uses: gawaooooo-sandbox/learn-github-actions-reusable-workflows/.github/workflows/deploy.yml@v3
+    uses: gawaooooo-sandbox/learn-github-actions-reusable-workflows/.github/workflows/deploy.yml@v4
     with:
       environment: ${{ inputs.environment }}
       # enable-auto-merge: false
@@ -106,7 +105,6 @@ jobs:
       enable-aws-deploy: false
     secrets:
       node-auth-token: ${{ secrets.GITHUB_TOKEN }}
-      github-token: ${{ secrets.GITHUB_TOKEN }}
       aws-role-arn: ${{ secrets.AWS_ROLE_ARN }}
     permissions:
       contents: write
