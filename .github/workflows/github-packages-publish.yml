@@ -49,7 +49,7 @@ concurrency:
 jobs:
   lint:
     if: github.event_name == 'pull_request' && (github.event.action == 'opened' || github.event.action == 'synchronize' || github.event.action == 'reopened')
-    uses: gawaooooo-sandbox/learn-github-actions-reusable-workflows/.github/workflows/lint.yml@v3
+    uses: gawaooooo-sandbox/learn-github-actions-reusable-workflows/.github/workflows/lint.yml@v4
     permissions:
       contents: read
       packages: read
@@ -59,7 +59,7 @@ jobs:
     uses: ./.github/workflows/test.yml
 
   npm-publish:
-    uses: gawaooooo-sandbox/learn-github-actions-reusable-workflows/.github/workflows/npm-publish.yml@v3
+    uses: gawaooooo-sandbox/learn-github-actions-reusable-workflows/.github/workflows/npm-publish.yml@v4
     with:
       label-name: ${{ github.event.label.name }}
       version-type: ${{ inputs.versionType }}

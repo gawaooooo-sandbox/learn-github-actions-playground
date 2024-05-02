@@ -41,7 +41,7 @@ on:
 jobs:
   lint:
     if: github.event_name == 'pull_request' || github.event_name == 'push'
-    uses: gawaooooo-sandbox/learn-github-actions-reusable-workflows/.github/workflows/lint.yml@v3
+    uses: gawaooooo-sandbox/learn-github-actions-reusable-workflows/.github/workflows/lint.yml@v4
     with:
       npm-install-options: '--ignore-scripts'
       enable-format-check: true
