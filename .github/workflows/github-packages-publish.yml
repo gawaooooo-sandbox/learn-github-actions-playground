@@ -59,7 +59,7 @@ jobs:
     uses: ./.github/workflows/test.yml
 
   npm-publish:
-    uses: gawaooooo-sandbox/learn-github-actions-reusable-workflows/.github/workflows/npm-publish.yml@v4
+    uses: gawaooooo-sandbox/learn-github-actions-reusable-workflows/.github/workflows/npm-publish.yml@feature/update-npm-publish
     with:
       label-name: ${{ github.event.label.name }}
       version-type: ${{ inputs.versionType }}
