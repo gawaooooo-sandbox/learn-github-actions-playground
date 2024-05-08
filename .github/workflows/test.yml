@@ -29,7 +29,7 @@ jobs:
 
     steps:
       - name: Setup Node.js and Install dependencies
-        uses: gawaooooo-sandbox/learn-github-actions-custom/composite/node-setup-and-dependencies@v3
+        uses: gawaooooo-sandbox/learn-github-actions-custom/composite/node-setup-and-dependencies@v4
         with:
           checkout-ref: ${{ inputs.checkout-ref }}
           npm-install-options: ${{ inputs.install-options }}
