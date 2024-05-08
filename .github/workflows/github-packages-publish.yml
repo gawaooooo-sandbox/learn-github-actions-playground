@@ -58,6 +58,7 @@ jobs:
     if: github.event_name == 'pull_request' && (github.event.action == 'opened' || github.event.action == 'synchronize' || github.event.action == 'reopened')
     uses: ./.github/workflows/test.yml
 
+  # manual publish → auto publishにしないと、pakcage の version が更新されないので注意
   npm-publish:
     uses: gawaooooo-sandbox/learn-github-actions-reusable-workflows/.github/workflows/npm-publish.yml@v4
     with:
