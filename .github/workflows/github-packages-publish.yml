@@ -60,7 +60,7 @@ jobs:
 
   # manual publish → auto publishにしないと、pakcage の version が更新されないので注意
   npm-publish:
-    uses: gawaooooo-sandbox/learn-github-actions-reusable-workflows/.github/workflows/npm-publish.yml@feature/update-npm-publish
+    uses: gawaooooo-sandbox/learn-github-actions-reusable-workflows/.github/workflows/npm-publish.yml@v4
     with:
       label-name: ${{ github.event.label.name }}
       version-type: ${{ inputs.versionType }}
